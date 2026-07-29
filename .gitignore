@@ -33,9 +33,19 @@ yarn-error.*
 # local env files
 .env*.local
 
+CLAUDE.md
+AGENTS.md
+
 # typescript
 *.tsbuildinfo
 
 # generated native folders
 /ios
 /android
+
+# Env files
+.env
+
+# AI Assistants
+.claude/
+.gemini/

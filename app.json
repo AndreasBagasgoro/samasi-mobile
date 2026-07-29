@@ -3,6 +3,8 @@
     "name": "samasi-mobile",
     "slug": "samasi-mobile",
     "version": "1.0.0",
+    "scheme": "samasi",
+    "plugins": ["expo-router", "expo-secure-store"],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
