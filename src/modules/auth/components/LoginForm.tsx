@@ -5,14 +5,15 @@ import { Input, Button } from '@shared/components';
 import { Colors } from '@shared/constants';
 import { useLoginForm } from '../hooks';
 import { useAuth } from '../hooks';
+import { Feather } from '@expo/vector-icons';
 
 export const LoginForm = () => {
   const { 
-    email, 
+    username, 
     password, 
     errors, 
     isLoading, 
-    setEmail, 
+    setUsername, 
     setPassword, 
     handleSubmit 
   } = useLoginForm();
@@ -21,33 +22,42 @@ export const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
+    
     <View style={styles.container}>
       {storeError && (
         <Text style={styles.errorText}>{storeError}</Text>
       )}
 
       <Input
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Enter your email"
-        keyboardType="email-address"
+        value={username}
+        onChangeText={setUsername}
+        placeholder="Enter your username"
+        keyboardType="default"
         autoCapitalize="none"
-        error={errors.email}
+        error={errors.username}
+        leftIcon={
+          <Feather name="user" size={20} color="#333"/>
+        }
       />
       
       <Input
-        label="Password"
         value={password}
         onChangeText={setPassword}
         placeholder="Enter your password"
         secureTextEntry={!showPassword}
         autoCapitalize="none"
         error={errors.password}
+        leftIcon={
+          <Feather name="lock" size={20} color="#333"/>
+        }
         rightIcon={
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Text style={styles.toggleText}>{showPassword ? 'Hide' : 'Show'}</Text>
-          </TouchableOpacity>
+          <Feather 
+            name={showPassword ? "eye" : "eye-off"} // Otomatis ganti ikon
+            size={20} 
+            color="#333" 
+          />
+        </TouchableOpacity>
         }
       />
 
@@ -57,13 +67,6 @@ export const LoginForm = () => {
         loading={isLoading}
         style={styles.submitButton}
       />
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Don't have an account? </Text>
-        <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-          <Text style={styles.linkText}>Register</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -71,24 +74,11 @@ export const LoginForm = () => {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    padding: 20,
+    padding: 40,
   },
   submitButton: {
     marginTop: 20,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 30,
-  },
-  footerText: {
-    color: Colors.text.secondary,
-    fontSize: 14,
-  },
-  linkText: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: '600',
+    borderRadius: 99,
   },
   toggleText: {
     color: Colors.primary,

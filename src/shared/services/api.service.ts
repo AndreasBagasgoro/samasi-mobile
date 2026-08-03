@@ -1,7 +1,7 @@
 import { ApiError, ApiResponse } from '../types';
 import { storageService } from './storage.service';
 
-const DEFAULT_BASE_URL = 'https://api.samasi.co.id/v1';
+const DEFAULT_BASE_URL = 'http://localhost:3010/api/v1';
 
 class ApiService {
   private baseURL: string;

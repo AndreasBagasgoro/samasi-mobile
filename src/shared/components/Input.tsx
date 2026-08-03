@@ -88,9 +88,9 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#333',
+    borderRadius: 99,
     backgroundColor: Colors.surface,
     minHeight: 48,
   },

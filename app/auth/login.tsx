@@ -7,8 +7,8 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <AuthHeader
-          title="Selamat Datang"
-          subtitle="Masuk ke akun Samasi Anda"
+          title="PT. Samudera Makmur Agensi"
+          subtitle="Shipping Agency Management System"
         />
         <LoginForm />
       </View>
@@ -19,11 +19,14 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAFAFA',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
+    paddingHorizontal: 2,
+    flexDirection: 'column',
+    alignContent: 'center',
+    justifyContent: 'flex-start',
+    marginTop: 80
   },
 });

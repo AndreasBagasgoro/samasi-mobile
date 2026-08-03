@@ -1,19 +1,18 @@
 import { useState } from 'react';
 import { useAuth } from './useAuth';
-import { EMAIL_REGEX, PASSWORD_MIN_LENGTH } from '../constants';
+import { PASSWORD_MIN_LENGTH } from '../constants';
 
 export const useLoginForm = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { login, isLoading } = useAuth();
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!EMAIL_REGEX.test(email)) {
-      newErrors.email = 'Invalid email format';
+
+    if (!username.trim) {
+      newErrors.username = 'Username is required';
     }
 
     if (!password) {
@@ -29,7 +28,7 @@ export const useLoginForm = () => {
   const handleSubmit = async () => {
     if (validate()) {
       try {
-        await login({ email, password });
+        await login({ username, password });
       } catch (err) {
         // Error handled in store
       }
@@ -37,11 +36,11 @@ export const useLoginForm = () => {
   };
 
   return {
-    email,
+    username,
     password,
     errors,
     isLoading,
-    setEmail,
+    setUsername,
     setPassword,
     handleSubmit,
   };
