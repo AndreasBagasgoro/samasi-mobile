@@ -18,8 +18,8 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <StatusBar style="auto" />
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(main)" />
+        <Stack.Screen name="auth" />
+        <Stack.Screen name="main" />
         <Stack.Screen name="index" />
       </Stack>
     </SafeAreaProvider>
