@@ -8,11 +8,11 @@ import { useAuth } from '../hooks';
 
 export const LoginForm = () => {
   const { 
-    email, 
+    username, 
     password, 
     errors, 
     isLoading, 
-    setEmail, 
+    setUsername, 
     setPassword, 
     handleSubmit 
   } = useLoginForm();
@@ -27,13 +27,12 @@ export const LoginForm = () => {
       )}
 
       <Input
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        placeholder="Enter your email"
-        keyboardType="email-address"
+        label="Username"
+        value={username}
+        onChangeText={setUsername}
+        placeholder="Enter your username"
         autoCapitalize="none"
-        error={errors.email}
+        error={errors.username}
       />
       
       <Input

@@ -1,13 +1,21 @@
 import { ApiError, ApiResponse } from '../types';
 import { storageService } from './storage.service';
 
-const DEFAULT_BASE_URL = 'https://api.samasi.co.id/v1';
+export const AUTH_API_URL = process.env.EXPO_PUBLIC_AUTH_API_URL || 'http://localhost:3010/api/v1';
+export const MASTER_API_URL = process.env.EXPO_PUBLIC_MASTER_API_URL || 'http://localhost:3020/api/v1';
+export const HR_API_URL = process.env.EXPO_PUBLIC_HR_API_URL || 'http://localhost:3030/api/v1';
+export const MOBILE_API_URL = process.env.EXPO_PUBLIC_MOBILE_API_URL || 'http://localhost:3040/api/v1';
+export const DEFAULT_BASE_URL = process.env.EXPO_PUBLIC_API_URL || AUTH_API_URL;
 
-class ApiService {
+export class ApiService {
   private baseURL: string;
 
   constructor(baseURL: string = DEFAULT_BASE_URL) {
     this.baseURL = baseURL;
+  }
+
+  getBaseURL(): string {
+    return this.baseURL;
   }
 
   private async getHeaders(): Promise<HeadersInit> {
@@ -104,4 +112,11 @@ class ApiService {
   }
 }
 
-export const apiService = new ApiService();
+export const createApiService = (baseURL: string) => new ApiService(baseURL);
+
+export const authApiService = new ApiService(AUTH_API_URL);
+export const masterApiService = new ApiService(MASTER_API_URL);
+export const hrApiService = new ApiService(HR_API_URL);
+export const mobileApiService = new ApiService(MOBILE_API_URL);
+
+export const apiService = authApiService;
