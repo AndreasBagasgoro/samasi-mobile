@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 import { useAuth } from './useAuth';
 import { PASSWORD_MIN_LENGTH } from '../constants';
 
@@ -7,11 +8,11 @@ export const useLoginForm = () => {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { login, isLoading } = useAuth();
+  const router = useRouter();
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-
-    if (!username.trim) {
+    if (!username) {
       newErrors.username = 'Username is required';
     }
 
@@ -29,6 +30,7 @@ export const useLoginForm = () => {
     if (validate()) {
       try {
         await login({ username, password });
+        router.replace('/(main)');
       } catch (err) {
         // Error handled in store
       }
