@@ -1,0 +1,14 @@
+{
+  "auth": {
+    "loginTitle": "Masuk ke Akun",
+    "loginButton": "Masuk",
+    "username": "Username",
+    "password": "Password",
+    "logout": "Keluar"
+  },
+  "common": {
+    "welcome": "Selamat Datang!",
+    "loading": "Memuat...",
+    "error": "Terjadi kesalahan"
+  }
+}

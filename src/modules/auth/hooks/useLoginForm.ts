@@ -30,9 +30,9 @@ export const useLoginForm = () => {
     if (validate()) {
       try {
         await login({ username, password });
-        router.replace('/(main)');
+        router.replace('/home');
       } catch (err) {
-        // Error handled in store
+        
       }
     }
   };

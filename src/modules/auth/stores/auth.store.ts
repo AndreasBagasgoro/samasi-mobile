@@ -25,13 +25,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await authService.login(data);
-      await storageService.setItem(TOKEN_KEY, response.token);
-      await storageService.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
-      await storageService.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.user));
+      const token = response.access_token || response.token;
+      
+      if (token) {
+        await storageService.setItem(TOKEN_KEY, token);
+      }
+      if (response.refreshToken) {
+        await storageService.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+      }
+      if (response.user) {
+        await storageService.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.user));
+      }
       
       set({
         user: response.user,
-        token: response.token,
+        token: token,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -48,13 +56,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await authService.register(data);
-      await storageService.setItem(TOKEN_KEY, response.token);
-      await storageService.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
-      await storageService.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.user));
+      const token = response.access_token || response.token;
+      
+      if (token) {
+        await storageService.setItem(TOKEN_KEY, token);
+      }
+      if (response.refreshToken) {
+        await storageService.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+      }
+      if (response.user) {
+        await storageService.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.user));
+      }
 
       set({
         user: response.user,
-        token: response.token,
+        token: token,
         isAuthenticated: true,
         isLoading: false,
       });

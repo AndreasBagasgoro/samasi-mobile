@@ -47,68 +47,54 @@ export class ApiService {
     return data as T;
   }
 
-  async get<T>(endpoint: string, params?: Record<string, string>): Promise<ApiResponse<T>> {
+  private async request<T>(
+    method: string, 
+    endpoint: string, 
+    body?: any, 
+    params?: Record<string, string>
+  ): Promise<ApiResponse<T>> {
     const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
     const url = `${this.baseURL}${endpoint}${queryString}`;
     const headers = await this.getHeaders();
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers,
-    });
+    try {
+      const response = await fetch(url, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
 
-    return this.handleResponse<ApiResponse<T>>(response);
+      return await this.handleResponse<ApiResponse<T>>(response);
+    } catch (error: any) {
+      if (error.statusCode) {
+        throw error;
+      }
+      const networkError: ApiError = {
+        message: `Gagal terhubung ke server (${this.baseURL}). Pastikan server backend berjalan dan CORS diizinkan.`,
+        statusCode: 0,
+      };
+      throw networkError;
+    }
+  }
+
+  async get<T>(endpoint: string, params?: Record<string, string>): Promise<ApiResponse<T>> {
+    return this.request<T>('GET', endpoint, undefined, params);
   }
 
   async post<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`;
-    const headers = await this.getHeaders();
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    return this.handleResponse<ApiResponse<T>>(response);
+    return this.request<T>('POST', endpoint, body);
   }
 
   async put<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`;
-    const headers = await this.getHeaders();
-
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    return this.handleResponse<ApiResponse<T>>(response);
+    return this.request<T>('PUT', endpoint, body);
   }
 
   async patch<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`;
-    const headers = await this.getHeaders();
-
-    const response = await fetch(url, {
-      method: 'PATCH',
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
-
-    return this.handleResponse<ApiResponse<T>>(response);
+    return this.request<T>('PATCH', endpoint, body);
   }
 
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`;
-    const headers = await this.getHeaders();
-
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers,
-    });
-
-    return this.handleResponse<ApiResponse<T>>(response);
+    return this.request<T>('DELETE', endpoint);
   }
 }
 

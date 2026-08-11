@@ -1,11 +1,14 @@
 export interface User {
-  id: string;
-  name: string;
+  id?: string;
+  employee_id?: string;
+  name?: string;
+  full_name?: string;
   username: string;
+  email?: string;
   phone?: string;
   avatar?: string;
-  role: string;
-  createdAt: string;
+  role?: any;
+  createdAt?: string;
 }
 
 export interface LoginRequest {
@@ -16,7 +19,9 @@ export interface LoginRequest {
 export interface LoginResponse {
   user: User;
   token: string;
-  refreshToken: string;
+  access_token?: string;
+  refreshToken?: string;
+  session_id?: string;
 }
 
 export interface RegisterRequest {
@@ -29,7 +34,8 @@ export interface RegisterRequest {
 export interface RegisterResponse {
   user: User;
   token: string;
-  refreshToken: string;
+  access_token?: string;
+  refreshToken?: string;
 }
 
 export interface AuthState {

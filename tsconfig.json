@@ -11,6 +11,12 @@
       "@shared/*": [
         "src/shared/*"
       ],
+      "@guards/*": [
+        "src/shared/guards/*"
+      ],
+      "@middlewares/*": [
+        "src/shared/guards/*"
+      ],
       "@assets/*": [
         "assets/*"
       ]

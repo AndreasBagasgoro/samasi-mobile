@@ -1,5 +1,5 @@
 export const Colors = {
-  primary: '#0F4C81', // Corporate Blue
+  primary: '#0A1628', // Base Primary Color
   secondary: '#FF9F1C', // Accent Orange
   accent: '#2EC4B6',
   
@@ -11,6 +11,7 @@ export const Colors = {
     secondary: '#6C757D',
     disabled: '#ADB5BD',
     inverse: '#FFFFFF',
+    label: '#475569',
   },
   
   semantic: {
@@ -20,6 +21,16 @@ export const Colors = {
     info: '#17A2B8',
   },
   
-  border: '#DEE2E6',
+  border: '#E2E8F0',
   transparent: 'transparent',
+};
+
+// Konfigurasi Linear Gradient (-27 deg, 0% #0A1628 -> 100% #0D2244)
+export const Gradients = {
+  primary: {
+    colors: ['#0A1628', '#0D2244'] as [string, string],
+    locations: [0, 1] as [number, number],
+    start: { x: 0.15, y: 0.85 },
+    end: { x: 0.85, y: 0.15 },
+  },
 };
