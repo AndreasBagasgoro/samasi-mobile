@@ -31,22 +31,28 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     }
   }, [isAuthenticated, isHydrated, segments]);
 
-  if (!isHydrated) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3d81c5" />
-      </View>
-    );
-  }
-
-  return <>{children}</>;
+  return (
+    <View style={styles.container}>
+      {/* Always render children (Stack) so ContextNavigator hooks order remains constant */}
+      {children}
+      {!isHydrated && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#3d81c5" />
+        </View>
+      )}
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-  loadingContainer: {
+  container: {
     flex: 1,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFill,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
+    zIndex: 9999,
   },
 });

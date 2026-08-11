@@ -1,95 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, StatusBar } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, StatusBar, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@modules/auth';
-import { HomeHeader } from '../components/HomeHeader';
-import { QuickAction } from '../components/QuickAction';
-import { FontAwesome, Feather, Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import Footer, { FooterMenuItem } from '@shared/components/Footer';
-import { useFonts, Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
-import { DMSans_400Regular, DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
+import { HomeHeader, QuickAction, Reminder } from '../components';
+import { Colors } from '@shared/constants';
+import { QUICK_ACTION_ITEMS, REMINDER_ITEMS } from '../constants/home.constants';
 
 export const HomeScreen: React.FC = () => {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const [activeTab, setActiveTab] = useState('1');
-
-  const [fontsLoaded, fontError] = useFonts({
-    'inter-Regular': Inter_400Regular,
-    'inter-semiBold': Inter_600SemiBold,
-    'inter-Bold': Inter_700Bold,
-    'DMSans-Regular': DMSans_400Regular,
-    'DMSans-Medium': DMSans_500Medium,
-    'DMSans-Bold': DMSans_700Bold,
-  });
-
-  const footerMenus: FooterMenuItem[] = [
-    {
-      id: '1',
-      title: 'Home',
-      icon: (
-        <Ionicons
-          name={activeTab === '1' ? 'home' : 'home-outline'}
-          size={22}
-          color={activeTab === '1' ? '#0F172A' : '#64748B'}
-        />
-      ),
-      isActive: activeTab === '1',
-      onPress: () => setActiveTab('1')
-    },
-    {
-      id: '2',
-      title: 'Customers',
-      icon: (
-        <FontAwesome
-          name={activeTab === '2' ? 'users' : 'user-o'}
-          size={22}
-          color={activeTab === '2' ? '#0F172A' : '#64748B'}
-        />
-      ),
-      isActive: activeTab === '2',
-      onPress: () => setActiveTab('2')
-    },
-    {
-      id: '3',
-      title: 'Diary',
-      icon: (
-        <Ionicons
-          name={activeTab === '3' ? 'book' : 'book-outline'}
-          size={22}
-          color={activeTab === '3' ? '#0F172A' : '#64748B'}
-        />
-      ),
-      isActive: activeTab === '3',
-      onPress: () => setActiveTab('3')
-    },
-    {
-      id: '4',
-      title: 'Deals',
-      icon: (
-        <FontAwesome5
-          name={activeTab === '4' ? 'dollar-sign' : 'dollar-sign'}
-          size={22}
-          color={activeTab === '4' ? '#0F172A' : '#64748B'}
-        />
-      ),
-      isActive: activeTab === '4',
-      onPress: () => setActiveTab('4')
-    },
-    {
-      id: '5',
-      title: 'Profile',
-      icon: (
-        <Ionicons
-          name={activeTab === '5' ? 'home' : 'home-outline'}
-          size={22}
-          color={activeTab === '5' ? '#0F172A' : '#64748B'}
-        />
-      ),
-      isActive: activeTab === '5',
-      onPress: () => setActiveTab('5')
-    },
-  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -98,34 +17,44 @@ export const HomeScreen: React.FC = () => {
         backgroundColor="#031730" 
         translucent={true}
       />
-      <HomeHeader/>
-      <View style={styles.content}>
-        <Text style={styles.title}>QUICK ACTIONS</Text>
-        <View style={styles.quickAction}>
-          <QuickAction 
-            icon={<FontAwesome name='book' size={22} color='#FFF'/>}
-            label="New Diary"
-            onPress={() => {}}
-          />
-          <QuickAction 
-            icon={<Feather name='user-plus' size={22} color='#FFF'/>}
-            label="New Customer"
-            onPress={() => {}}
-          />
-          <QuickAction 
-            icon={<Feather name='search' size={22} color='#FFF'/>}
-            label="Search contact"
-            onPress={() => {}}
-          />
-          <QuickAction 
-            icon={<Feather name='plus' size={22} color='#FFF'/>}
-            label="Create Deal"
-            onPress={() => {}}
-          />
+      <ScrollView 
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <HomeHeader />
+        <View style={styles.content}>
+          <Text style={styles.title}>QUICK ACTIONS</Text>
+          <View style={styles.quickAction}>
+            {QUICK_ACTION_ITEMS.map((item) => (
+              <QuickAction
+                key={item.id}
+                icon={item.icon}
+                label={item.label}
+                backgroundColor={item.backgroundColor}
+                cardBackgroundColor={item.cardBackgroundColor}
+                onPress={item.onPress}
+              />
+            ))}
+          </View>
+
+          <Text style={styles.title}>REMINDERS</Text>
+          <View style={styles.reminder}>
+            {REMINDER_ITEMS.map((item) => (
+              <Reminder 
+                key={item.id}
+                title={item.title}
+                label={item.label}
+                time={item.time}
+                iconColor={item.iconColor}
+                iconBackgroundColor={item.iconBackgroundColor}
+                cardBackgroundColor={item.cardBackgroundColor}
+                onPress={item.onPress}
+              />
+            ))}
+          </View>
         </View>
-        <Text style={styles.title}>REMINDERS</Text>
-      </View>
-      <Footer items={footerMenus}/>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -135,6 +64,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F7FF',
   },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24,
+  },
   content: {
     flex: 1,
     justifyContent: 'flex-start',
@@ -143,9 +78,9 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   title: {
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#64748B',
+    color: Colors.text.secondary,
     marginBottom: 8,
     fontFamily: 'inter-Bold'
   },
@@ -165,4 +100,11 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 10,
   },
+  reminder: {
+    flexDirection: "column",
+    justifyContent: 'flex-start',
+    alignItems: "stretch",
+    width: '100%',
+    gap: 6,
+  }
 });

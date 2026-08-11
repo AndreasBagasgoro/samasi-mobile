@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { MainCard } from '@shared/components/MainCard';
-import { Colors } from '@shared/constants';
+import { Colors, Layout } from '@shared/constants';
 
 interface HomeHeaderProps {
     greet?: string;
@@ -47,7 +47,9 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
 const styles = StyleSheet.create({
     container: {
         backgroundColor: Colors.primary,
-        padding: 20,
+        paddingHorizontal: 18,
+        paddingTop: 28,
+        paddingBottom: 28,
         borderBottomLeftRadius: 28,
         borderBottomRightRadius: 28,
     },
