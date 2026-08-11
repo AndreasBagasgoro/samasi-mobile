@@ -6,3 +6,11 @@ export const Spacing = {
   xl: 32,
   xxl: 48,
 };
+
+export const Layout = {
+  screenPaddingHorizontal: 32,
+  screenPaddingVertical: 16,
+  containerPaddingHorizontal: 24,
+  cardPaddingHorizontal: 16,
+  inputPaddingHorizontal: 16,
+};

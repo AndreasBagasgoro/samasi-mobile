@@ -1,6 +1,13 @@
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
-export const QuickAction = ({ icon, label, onPress }) => {
+interface QuickActionProps {
+  icon: React.ReactNode;
+  label: string;
+  onPress?: () => void;
+}
+
+export const QuickAction: React.FC<QuickActionProps> = ({ icon, label, onPress }) => {
   return (
     <TouchableOpacity 
         onPress={onPress}
@@ -38,7 +45,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#0F172A',
-        flexShrink: 1, // Mencegah teks meluap keluar tombol
+        flexShrink: 1,
     },
-})
-
+});

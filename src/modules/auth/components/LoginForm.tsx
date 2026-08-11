@@ -1,65 +1,75 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
 import { Input, Button } from '@shared/components';
-import { Colors } from '@shared/constants';
+import { Colors, Layout } from '@shared/constants';
 import { useLoginForm } from '../hooks';
 import { useAuth } from '../hooks';
 import { Feather } from '@expo/vector-icons';
 
 export const LoginForm = () => {
-  const { 
-    username, 
-    password, 
-    errors, 
-    isLoading, 
-    setUsername, 
-    setPassword, 
-    handleSubmit 
+  const {
+    username,
+    password,
+    errors,
+    isLoading,
+    setUsername,
+    setPassword,
+    handleSubmit
   } = useLoginForm();
-  
+
   const { error: storeError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    
     <View style={styles.container}>
       {storeError && (
         <Text style={styles.errorText}>{storeError}</Text>
       )}
 
-      <Input
-        value={username}
-        onChangeText={setUsername}
-        placeholder="Enter your username"
-        keyboardType="default"
-        autoCapitalize="none"
-        error={errors.username}
-        leftIcon={
-          <Feather name="user" size={20} color="#333"/>
-        }
-      />
-      
-      <Input
-        value={password}
-        onChangeText={setPassword}
-        placeholder="Enter your password"
-        secureTextEntry={!showPassword}
-        autoCapitalize="none"
-        error={errors.password}
-        leftIcon={
-          <Feather name="lock" size={20} color="#333"/>
-        }
-        rightIcon={
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Feather 
-            name={showPassword ? "eye" : "eye-off"} // Otomatis ganti ikon
-            size={20} 
-            color="#333" 
-          />
-        </TouchableOpacity>
-        }
-      />
+      <View>
+        <Text style={styles.fieldTitle}>
+          USERNAME
+        </Text>
+        <Input
+          value={username}
+          onChangeText={setUsername}
+          placeholder="Enter your username"
+          keyboardType="default"
+          autoCapitalize="none"
+          error={errors.username}
+          inputContainerStyle={styles.inputContainerStyle}
+        />
+      </View>
+
+      <View>
+        <Text style={styles.fieldTitle}>
+          PASSWORD
+        </Text>
+        <Input
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Enter your password"
+          secureTextEntry={!showPassword}
+          autoCapitalize="none"
+          error={errors.password}
+          inputContainerStyle={styles.inputContainerStyle}
+          rightIcon={
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Feather
+                name={showPassword ? "eye-off" : "eye"}
+                size={20}
+                color="#333"
+              />
+            </TouchableOpacity>
+          }
+        />
+      </View>
+
+      <View>
+        <Text style={styles.forgotPassword}>
+          Forgot Password?
+        </Text>
+      </View>
 
       <Button
         title="Login"
@@ -74,11 +84,13 @@ export const LoginForm = () => {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    padding: 40,
+    paddingHorizontal: Layout.containerPaddingHorizontal,
+    paddingVertical: 48,
   },
   submitButton: {
     marginTop: 20,
-    borderRadius: 99,
+    borderRadius: 14,
+    paddingVertical: 12
   },
   toggleText: {
     color: Colors.primary,
@@ -89,4 +101,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
+  inputContainerStyle: {
+    borderRadius: 12,
+  },
+  fieldTitle: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+    fontWeight: '600',
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  forgotPassword: {
+    fontSize: 12,
+    color: Colors.text.secondary,
+    fontWeight: '600',
+    alignSelf: 'flex-end',
+  }
 });

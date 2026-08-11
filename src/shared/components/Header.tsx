@@ -20,10 +20,12 @@ export default function Header({
 				<View style={styles.logoArea}>
 					<Image
 						source={require('../../../assets/logo-samasi.png')}
+						resizeMode="contain"
 						style={styles.logo}
 						/>
 					<Image
 						source={require('../../../assets/samasi-text.png')}
+						resizeMode="contain"
 						style={styles.logoText}
 						/>
 					{title && <Text style={styles.titleText}>{title}</Text>}
@@ -84,12 +86,10 @@ const styles = StyleSheet.create({
 	logo: {
 		width: 80,
 		height: 80,
-		resizeMode: 'contain',
 	},
 	logoText: {
 		width: 80,
 		height: 80,
-		resizeMode: 'contain',
 		marginLeft: -15,
 	},
 	titleText: {

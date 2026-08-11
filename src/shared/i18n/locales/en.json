@@ -1,0 +1,14 @@
+{
+  "auth": {
+    "loginTitle": "Login to Account",
+    "loginButton": "Login",
+    "username": "Username",
+    "password": "Password",
+    "logout": "Logout"
+  },
+  "common": {
+    "welcome": "Welcome!",
+    "loading": "Loading...",
+    "error": "An error occurred"
+  }
+}

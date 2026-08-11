@@ -14,11 +14,11 @@ export default function Index() {
     );
   }
 
-  // if (isAuthenticated) {
-  //   return <Redirect href="/main" />;
-  // }
+  if (isAuthenticated) {
+    return <Redirect href="/home" />;
+  }
 
-  return <Redirect href="/main" />;
+  return <Redirect href="/home" />;
 }
 
 const styles = StyleSheet.create({
