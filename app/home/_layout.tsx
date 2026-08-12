@@ -9,6 +9,7 @@ export default function HomeLayout() {
       <View style={styles.content}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
+          <Stack.Screen name="customers" />
         </Stack>
       </View>
       <NavigationBar />

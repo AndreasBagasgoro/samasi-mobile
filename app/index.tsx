@@ -9,7 +9,7 @@ export default function Index() {
   if (!isHydrated) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#3d81c5" />
       </View>
     );
   }
@@ -18,7 +18,7 @@ export default function Index() {
     return <Redirect href="/home" />;
   }
 
-  return <Redirect href="/home" />;
+  return <Redirect href="/auth/login" />;
 }
 
 const styles = StyleSheet.create({

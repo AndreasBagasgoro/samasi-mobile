@@ -3,11 +3,12 @@ export const Colors = {
   secondary: '#FF9F1C', // Accent Orange
   accent: '#2EC4B6',
   
-  background: '#F8F9FA',
+  background: '#F8FAFC',
   surface: '#FFFFFF',
+  background2: '#F1F5F9',
   
   text: {
-    primary: '#212529',
+    primary: '#0A1628',
     secondary: '#6C757D',
     disabled: '#ADB5BD',
     inverse: '#FFFFFF',

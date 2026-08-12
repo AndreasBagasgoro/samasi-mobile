@@ -12,6 +12,8 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const segments = useSegments();
   const router = useRouter();
 
+  const segmentPath = segments.join('/');
+
   useEffect(() => {
     if (!isHydrated) return;
 
@@ -29,7 +31,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
       // Redirect to home if already authenticated and accessing auth routes
       router.replace('/home');
     }
-  }, [isAuthenticated, isHydrated, segments]);
+  }, [isAuthenticated, isHydrated, segmentPath]);
 
   return (
     <View style={styles.container}>
