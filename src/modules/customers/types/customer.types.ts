@@ -17,5 +17,30 @@ export interface CustomerItem {
     lastActive: string;
     avatarBackgroundColor?: string;
     avatarTextColor?: string;
+    status?: 'active' | 'inactive' | string;
+    npwp?: string;
+    email?: string;
+    address?: string;
+    billingAddress?: string;
+    city?: string;
+    onPress?: () => void;
+}
+
+export interface ContactPersonItem {
+    id?: string;
+    name: string;
+    role: string;
+    email: string;
+    phone: string;
+    avatarBackgroundColor?: string;
+    onPress?: () => void;
+}
+
+export interface DealItem {
+    id?: string;
+    title: string;
+    amount: string;
+    stage: string;
+    date?: string;
     onPress?: () => void;
 }

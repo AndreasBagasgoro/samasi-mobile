@@ -1,5 +1,5 @@
 import { CustomerScreen } from "@modules/customers";
 
-export default function CustomersPage() {
+export default function CustomersIndexPage() {
   return <CustomerScreen />;
 }

@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     profileText: {
         fontWeight: '700',
         fontSize: 15,
-        color: '#FFFFFF', // 👈 Selalu berwarna putih pekat
+        color: '#FFFFFF', 
     },
     contactInfoContainer: {
         flex: 1,

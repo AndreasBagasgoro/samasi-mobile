@@ -1,1 +1,2 @@
-export * from './CustomerListScreen'
+export * from './CustomerListScreen';
+export * from './CustomerDetailScreen';

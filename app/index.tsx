@@ -14,11 +14,7 @@ export default function Index() {
     );
   }
 
-  if (isAuthenticated) {
-    return <Redirect href="/home" />;
-  }
-
-  return <Redirect href="/auth/login" />;
+  return <Redirect href={isAuthenticated ? '/home' : '/auth/login'} />;
 }
 
 const styles = StyleSheet.create({
@@ -26,5 +22,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
 });
+

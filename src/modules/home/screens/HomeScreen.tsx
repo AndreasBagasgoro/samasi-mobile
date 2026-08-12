@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, StatusBar, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@modules/auth';
 import { HomeHeader, QuickAction, Reminder } from '../components';
@@ -12,11 +13,7 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar 
-        barStyle="light-content" 
-        backgroundColor="#031730" 
-        translucent={true}
-      />
+      <StatusBar style="light" />
       <ScrollView 
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}

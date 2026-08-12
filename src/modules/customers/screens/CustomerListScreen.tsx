@@ -1,18 +1,18 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import { CustomerHeader, CustomerCard } from '../components';
 import { Colors, Layout } from '@shared/constants';
 import { CUSTOMER_ITEMS } from '../constants/customer.constants';
 
 export const CustomerScreen: React.FC = () => {
+  const router = useRouter();
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor="#031730"
-        translucent={true}
-      />
+      <StatusBar style="light" />
       <ScrollView
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -30,7 +30,11 @@ export const CustomerScreen: React.FC = () => {
               lastActive={item.lastActive}
               avatarBackgroundColor={item.avatarBackgroundColor}
               avatarTextColor={item.avatarTextColor}
-              onPress={item.onPress}
+              onPress={() => {
+                if (item.id) {
+                  router.push(`/home/customers/${item.id}`);
+                }
+              }}
             />
           ))}
         </View>
