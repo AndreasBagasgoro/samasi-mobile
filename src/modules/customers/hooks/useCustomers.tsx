@@ -6,6 +6,14 @@ import { useDebounce } from '@shared/hooks';
 
 interface UseCustomersOptions {
   autoFetch?: boolean;
+  defaultLimit?: number;
+}
+
+interface PaginationMeta {
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
 }
 
 let cachedCustomers: CustomerSummaryItem[] | null = null;
@@ -13,16 +21,19 @@ let cachedFormattedCustomers: CustomerItem[] | null = null;
 const cachedDetailMap = new Map<string | number, CustomerDetailItem>();
 const cachedContactsMap = new Map<string | number, CustomerContactSummaryItem[]>();
 
-export const useCustomers = (options: UseCustomersOptions = { autoFetch: true }) => {
-  const { autoFetch = true } = options;
+export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, defaultLimit: 10 }) => {
+  const { autoFetch = true, defaultLimit = 10 } = options;
 
   const [customers, setCustomers] = useState<CustomerSummaryItem[]>(cachedCustomers || []);
   const [formattedCustomers, setFormattedCustomers] = useState<CustomerItem[]>(cachedFormattedCustomers || []);
   const [customerContacts, setCustomerContacts] = useState<CustomerContactSummaryItem[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerDetailItem | null>(null);
-  
+
   const [searchQuery, setSearchQuery] = useState<string>('');
   const debouncedQuery = useDebounce(searchQuery, 500);
+
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pagination, setPagination] = useState<PaginationMeta>({ total: 0, page: 1, per_page: defaultLimit, total_pages: 1 });
 
   const hasInitialData = Boolean(cachedFormattedCustomers && cachedFormattedCustomers.length > 0);
   const [isLoading, setIsLoading] = useState<boolean>(!hasInitialData);
@@ -60,14 +71,14 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     }));
   }, []);
 
-  const fetchCustomerContact = useCallback(async (id: string | number, options?: { forceLoading?: boolean }) => {
+  const fetchCustomerContact = useCallback(async (id: string | number, opts?: { forceLoading?: boolean }) => {
     const cachedContacts = cachedContactsMap.get(id);
-    
+
     if (cachedContacts) {
       setCustomerContacts(cachedContacts);
     }
 
-    if (!cachedContacts || options?.forceLoading) {
+    if (!cachedContacts || opts?.forceLoading) {
       setIsLoading(true);
     }
     setError(null);
@@ -75,7 +86,7 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     try {
       const data = await customerService.getCustomerContact(id);
       const formatted = formatCustomerContactData(data);
-      
+
       cachedContactsMap.set(id, formatted);
       setCustomerContacts(formatted);
       return formatted;
@@ -88,38 +99,49 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     }
   }, [formatCustomerContactData]);
 
-  const fetchCustomers = useCallback(async (search?: string, options?: { forceLoading?: boolean }) => {
-    const query = search !== undefined ? search : searchQuery;
-    if (!cachedFormattedCustomers || options?.forceLoading || (search !== undefined && search !== '')) {
+  const fetchCustomers = useCallback(async (search?: string, page = 1, opts?: { forceLoading?: boolean }) => {
+    const query = search !== undefined ? search : debouncedQuery;
+
+    if (!cachedFormattedCustomers || opts?.forceLoading || page > 1 || (search !== undefined && search !== '')) {
       setIsLoading(true);
     }
     setError(null);
 
     try {
-      const data = await customerService.getCustomers(query);
-      const formatted = formatCustomerData(data);
-      
-      if (!query) {
-        cachedCustomers = data;
+      const response = await customerService.getCustomers({ search: query, page, per_page: defaultLimit });
+      const formatted = formatCustomerData(response.data);
+
+      // Simpan ke cache hanya jika halaman 1 tanpa query
+      if (!query && page === 1) {
+        cachedCustomers = response.data;
         cachedFormattedCustomers = formatted;
       }
 
-      setCustomers(data);
+      setCustomers(response.data);
       setFormattedCustomers(formatted);
+      setPagination(response.meta);
+      setCurrentPage(response.meta.page);
     } catch (err: any) {
       const errorMessage = err?.message || 'Gagal mengambil data pelanggan dari server.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, [formatCustomerData, searchQuery]);
+  }, [formatCustomerData, defaultLimit, debouncedQuery]);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
+    setCurrentPage(1);
   }, []);
 
+  const goToPage = useCallback((page: number) => {
+    setCurrentPage(page);
+    fetchCustomers(debouncedQuery, page);
+  }, [fetchCustomers, debouncedQuery]);
+
+  // Trigger fetch saat debounced query berubah, reset ke halaman 1
   useEffect(() => {
-    fetchCustomers(debouncedQuery);
+    fetchCustomers(debouncedQuery, 1);
   }, [debouncedQuery]);
 
   const fetchCustomerDetail = useCallback(async (id: string | number) => {
@@ -147,7 +169,7 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
 
   const getCustomerById = useCallback((id: string | undefined): CustomerItem => {
     const foundInList = formattedCustomers.find((item) => String(item.id) === String(id));
-    
+
     if (selectedCustomer && String(selectedCustomer.customer_id) === String(id)) {
       return {
         id: String(selectedCustomer.customer_id),
@@ -189,23 +211,25 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     setIsRefreshing(true);
     setError(null);
     try {
-      const data = await customerService.getCustomers();
-      cachedCustomers = data;
-      const formatted = formatCustomerData(data);
+      const response = await customerService.getCustomers({ page: 1, per_page: defaultLimit });
+      cachedCustomers = response.data;
+      const formatted = formatCustomerData(response.data);
       cachedFormattedCustomers = formatted;
 
-      setCustomers(data);
+      setCustomers(response.data);
       setFormattedCustomers(formatted);
+      setPagination(response.meta);
+      setCurrentPage(1);
     } catch (err: any) {
       setError(err?.message || 'Gagal memperbarui data.');
     } finally {
       setIsRefreshing(false);
     }
-  }, [formatCustomerData]);
+  }, [formatCustomerData, defaultLimit]);
 
   useEffect(() => {
     if (autoFetch && !debouncedQuery) {
-      fetchCustomers();
+      fetchCustomers(undefined, 1);
     }
   }, [autoFetch]);
 
@@ -218,6 +242,9 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     debouncedQuery,
     setSearchQuery,
     handleSearch,
+    pagination,
+    currentPage,
+    goToPage,
     getCustomerById,
     isLoading,
     isRefreshing,

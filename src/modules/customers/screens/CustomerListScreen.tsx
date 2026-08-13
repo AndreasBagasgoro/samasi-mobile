@@ -5,11 +5,23 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { CustomerHeader, CustomerCard } from '../components';
 import { Colors, Layout } from '@shared/constants';
+import { Pagination } from '@shared/components';
 import { useCustomers } from '../hooks';
 
 export const CustomerScreen: React.FC = () => {
   const router = useRouter();
-  const { formattedCustomers, searchQuery, handleSearch, isLoading, isRefreshing, error, refreshCustomers } = useCustomers();
+  const {
+    formattedCustomers,
+    searchQuery,
+    handleSearch,
+    pagination,
+    currentPage,
+    goToPage,
+    isLoading,
+    isRefreshing,
+    error,
+    refreshCustomers,
+  } = useCustomers();
 
   const handleCustomerPress = useCallback((id?: string) => {
     if (id) {
@@ -17,10 +29,9 @@ export const CustomerScreen: React.FC = () => {
     }
   }, [router]);
 
-  // Memoize daftar item customer (Optimasi SWR: Mencegah re-render ulang saat perpindahan halaman)
   const renderedCustomerList = useMemo(() => {
     return formattedCustomers.map((item, index) => (
-      <CustomerCard 
+      <CustomerCard
         key={item.id || index}
         profileInitial={item.profileInitial}
         name={item.name}
@@ -50,10 +61,10 @@ export const CustomerScreen: React.FC = () => {
           />
         }
       >
-        <CustomerHeader 
+        <CustomerHeader
           searchValue={searchQuery}
           onSearchChange={handleSearch}
-          totalCount={formattedCustomers.length}
+          totalCount={pagination.total}
         />
 
         {isLoading && !isRefreshing && (
@@ -74,6 +85,19 @@ export const CustomerScreen: React.FC = () => {
             {renderedCustomerList}
           </View>
         )}
+
+        {/* Komponen Pagination */}
+        {!isLoading && pagination.total_pages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={pagination.total_pages}
+            totalItems={pagination.total}
+            itemsPerPage={pagination.per_page}
+            isLoading={isLoading}
+            onPageChange={goToPage}
+            style={styles.pagination}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -93,6 +117,10 @@ const styles = StyleSheet.create({
   contactCardContainer: {
     paddingHorizontal: Layout.screenPaddingHorizontal2,
     paddingTop: 16,
+    gap: 6,
+  },
+  pagination: {
+    marginHorizontal: Layout.screenPaddingHorizontal2,
   },
   loadingContainer: {
     paddingVertical: 32,

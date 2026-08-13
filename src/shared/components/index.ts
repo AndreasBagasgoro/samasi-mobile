@@ -6,4 +6,5 @@ export * from './NavigationBar';
 export * from './ContactCard';
 export * from './CustomerForm';
 export * from './FormHeader';
+export * from './Pagination';
 export { default as Header } from './Header';
