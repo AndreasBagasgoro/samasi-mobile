@@ -11,13 +11,28 @@ export const OverviewTabScreen: React.FC<OverviewTabProps> = ({ customer }) => {
   return (
     <ScrollView
       style={styles.container}
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator={true}
+      nestedScrollEnabled={true}
       contentContainerStyle={styles.scrollContent}
     >
       <View style={styles.infoSection}>
         {/* Company Info Card */}
         <View style={styles.infoCard}>
           <Text style={styles.sectionTitle}>COMPANY INFO</Text>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Company Name</Text>
+            <Text style={styles.infoValue}>{customer.name || '-'}</Text>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Customer Type</Text>
+            <Text style={styles.infoValue}>{customer.customerType || '-'}</Text>
+          </View>
+
+          <View style={styles.divider} />
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>NPWP</Text>
@@ -54,9 +69,47 @@ export const OverviewTabScreen: React.FC<OverviewTabProps> = ({ customer }) => {
             <Text style={styles.infoLabel}>Billing Address</Text>
             <Text style={styles.infoValueFull}>{customer.billingAddress || '-'}</Text>
           </View>
+        </View>
+
+        {/* Terms & Approval Status Card */}
+        <View style={styles.infoCard}>
+          <Text style={styles.sectionTitle}>TERMS & APPROVAL</Text>
+
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Payment Terms</Text>
+            <Text style={styles.infoValue}>
+              {customer.paymentTermDays ? `${customer.paymentTermDays} Days` : '-'}
+            </Text>
+          </View>
 
           <View style={styles.divider} />
 
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>Approval Status</Text>
+            <Text style={[styles.infoValue, { color: customer.status === 'active' ? '#10B981' : Colors.text.primary }]}>
+              {customer.approvalStatus || (customer.status === 'active' ? 'APPROVED' : 'PENDING')}
+            </Text>
+          </View>
+
+          {customer.documentCategory && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Doc Category</Text>
+                <Text style={styles.infoValue}>{customer.documentCategory}</Text>
+              </View>
+            </>
+          )}
+
+          {customer.createdBy && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>Created By</Text>
+                <Text style={styles.infoValue}>{customer.createdBy}</Text>
+              </View>
+            </>
+          )}
         </View>
       </View>
     </ScrollView>
@@ -66,12 +119,16 @@ export const OverviewTabScreen: React.FC<OverviewTabProps> = ({ customer }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    height: '100%',
     backgroundColor: Colors.background,
+    // @ts-ignore - Izinkan pan-y gesture
+    touchAction: 'pan-y',
   },
   scrollContent: {
     paddingHorizontal: 18,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 80,
+    flexGrow: 1,
     gap: 16,
   },
   infoSection: {

@@ -23,6 +23,10 @@ export interface CustomerItem {
     address?: string;
     billingAddress?: string;
     city?: string;
+    paymentTermDays?: number;
+    approvalStatus?: string;
+    documentCategory?: string;
+    createdBy?: string;
     onPress?: () => void;
 }
 
@@ -43,4 +47,35 @@ export interface DealItem {
     stage: string;
     date?: string;
     onPress?: () => void;
+}
+
+export interface CustomerSummaryItem {
+  customer_id: string | number;
+  customer_code: string;
+  customer_name: string;
+  short_name: string;
+  customer_type_id: string | number;
+  customer_type_name: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  created_at?: string;
+}
+
+export interface CustomerDetailItem extends CustomerSummaryItem {
+  npwp?: string | null;
+  email?: string | null;
+  address?: string | null;
+  billing_address?: string | null;
+  city_name?: string | null;
+  document_category_name?: string | null;
+  payment_term_days: number;
+  approval_status: string;
+  is_approved_for_transaction: boolean;
+  created_by_name?: string | null;
+  updated_by_name?: string | null;
+  customerContact?: Array<{
+    contactId: string | number;
+    contactName: string;
+    email?: string;
+    phone?: string;
+  }>;
 }

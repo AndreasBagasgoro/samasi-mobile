@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView, useWindowDimensions, Animated } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, StyleSheet, SafeAreaView, Animated, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '@shared/constants';
-import { CUSTOMER_ITEMS, getAvatarBackgroundColor } from '../constants/customer.constants';
+import { getAvatarBackgroundColor } from '../constants/customer.constants';
 import { DetailHeader, Navigation } from '../components';
 import { 
   OverviewTabScreen, 
@@ -11,27 +11,25 @@ import {
   DealsTabScreen, 
   TimelineTabScreen 
 } from './detail-tabs';
+import { useCustomers } from '../hooks';
 
 export const CustomerDetailScreen: React.FC = () => {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
+    const { getCustomerById, fetchCustomerDetail } = useCustomers({ autoFetch: false });
     const { width: screenWidth } = useWindowDimensions();
 
     const [activeTab, setActiveTab] = useState(0);
     const scrollViewRef = useRef<any>(null);
     const scrollX = useRef(new Animated.Value(0)).current;
 
-    // Cari data customer berdasarkan ID yang dikirim dari URL
-    const customer = CUSTOMER_ITEMS.find((item) => item.id === id) || {
-        id: id || 'unknown',
-        profileInitial: 'CU',
-        name: 'Customer Detail',
-        customerType: 'NVOCC',
-        totalContacts: 5,
-        lastActive: 'Active recently',
-        status: 'active',
-    };
+    useEffect(() => {
+        if (id) {
+            fetchCustomerDetail(id);
+        }
+    }, [id, fetchCustomerDetail]);
 
+    const customer = getCustomerById(id);
     const avatarBg = getAvatarBackgroundColor(customer.name || customer.profileInitial);
 
     const handleTabPress = (index: number) => {
@@ -68,14 +66,14 @@ export const CustomerDetailScreen: React.FC = () => {
                 onPress={() => router.back()}
             />
 
-            {/* 2. Navigation Tab Bar dengan Animasi Garis Underline Bergeser */}
+            {/* 2. Navigation Tab Bar (Animasi Gliding Underline Synced ScrollX) */}
             <Navigation
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
                 scrollX={scrollX}
             />
 
-            {/* 3. Horizontal Swipable Tab Screens (Animated ScrollView) */}
+            {/* 3. Horizontal Swipable Pager (Mendukung Swipe Kiri/Kanan & Scroll Vertikal Atas/Bawah) */}
             <Animated.ScrollView
                 ref={scrollViewRef}
                 horizontal
@@ -84,17 +82,18 @@ export const CustomerDetailScreen: React.FC = () => {
                 scrollEventThrottle={16}
                 onScroll={handleScroll}
                 style={styles.pager}
+                contentContainerStyle={styles.pagerContent}
             >
-                <View style={{ width: screenWidth }}>
+                <View style={[styles.pageWrapper, { width: screenWidth }]}>
                     <OverviewTabScreen customer={customer} />
                 </View>
-                <View style={{ width: screenWidth }}>
+                <View style={[styles.pageWrapper, { width: screenWidth }]}>
                     <ContactsTabScreen customer={customer} />
                 </View>
-                <View style={{ width: screenWidth }}>
+                <View style={[styles.pageWrapper, { width: screenWidth }]}>
                     <DealsTabScreen customer={customer} />
                 </View>
-                <View style={{ width: screenWidth }}>
+                <View style={[styles.pageWrapper, { width: screenWidth }]}>
                     <TimelineTabScreen customer={customer} />
                 </View>
             </Animated.ScrollView>
@@ -109,5 +108,14 @@ const styles = StyleSheet.create({
     },
     pager: {
         flex: 1,
+    },
+    pagerContent: {
+        flexGrow: 1,
+    },
+    pageWrapper: {
+        flex: 1,
+        height: '100%',
+        // @ts-ignore - Izinkan gesture scroll vertikal di dalam swipe pager horizontal pada Web & Mobile
+        touchAction: 'pan-y',
     },
 });

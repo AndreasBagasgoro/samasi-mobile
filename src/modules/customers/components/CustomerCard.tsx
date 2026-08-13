@@ -34,7 +34,7 @@ export const CustomerCard: React.FC<CustomerItem> = ({
                 <View style={styles.detailsRow}>
                     <Text style={styles.customerType}>{customerType}</Text>
                     <Text style={styles.dot}>·</Text>
-                    <Text style={styles.totalContacts}>{totalContacts} Contacts</Text>
+                    {/* <Text style={styles.totalContacts}>{totalContacts} Contacts</Text> */}
                 </View>
                 <Text style={styles.lastActive}>{lastActive}</Text>
             </View>
