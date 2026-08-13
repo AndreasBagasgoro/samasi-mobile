@@ -6,7 +6,17 @@ import { Input } from '@shared/components';
 import { Filter } from './Filter';
 import { FILTER_ITEMS } from '../constants/customer.constants';
 
-export const CustomerHeader: React.FC = () => {
+interface CustomerHeaderProps {
+    searchValue?: string;
+    onSearchChange?: (text: string) => void;
+    totalCount?: number;
+}
+
+export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
+    searchValue = '',
+    onSearchChange,
+    totalCount,
+}) => {
     const [activeFilterId, setActiveFilterId] = useState('all');
 
     return (
@@ -14,11 +24,15 @@ export const CustomerHeader: React.FC = () => {
             <View style={styles.head}>
                 <Text style={styles.customerText}>Customer</Text>
                 <View style={styles.customerAmountContainer}>
-                    <Text style={styles.customerAmount}>Amount</Text>
+                    <Text style={styles.customerAmount}>
+                        {totalCount !== undefined ? `${totalCount} Customers` : 'Amount'}
+                    </Text>
                 </View>
             </View>
             <View style={styles.searchBarContainer}>
                 <Input
+                    value={searchValue}
+                    onChangeText={onSearchChange}
                     leftIcon={
                         <Feather name="search" size={20} color={Colors.text.secondary} />
                     }
@@ -27,7 +41,6 @@ export const CustomerHeader: React.FC = () => {
                     inputContainerStyle={styles.searchBarContainerStyle}
                 />
             </View>
-            {/* ScrollView Horizontal untuk Tombol-Tombol Filter (Single Selection) */}
             <ScrollView 
                 horizontal
                 showsHorizontalScrollIndicator={false}

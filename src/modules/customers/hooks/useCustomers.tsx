@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { customerService } from '../services/customer.service';
 import { CustomerSummaryItem, CustomerDetailItem, CustomerItem, CustomerContactSummaryItem } from '../types';
 import { getAvatarBackgroundColor } from '../constants/customer.constants';
+import { useDebounce } from '@shared/hooks';
 
 interface UseCustomersOptions {
   autoFetch?: boolean;
@@ -20,6 +21,9 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
   const [customerContacts, setCustomerContacts] = useState<CustomerContactSummaryItem[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerDetailItem | null>(null);
   
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const debouncedQuery = useDebounce(searchQuery, 500);
+
   const hasInitialData = Boolean(cachedFormattedCustomers && cachedFormattedCustomers.length > 0);
   const [isLoading, setIsLoading] = useState<boolean>(!hasInitialData);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -84,18 +88,21 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     }
   }, [formatCustomerContactData]);
 
-  const fetchCustomers = useCallback(async (options?: { forceLoading?: boolean }) => {
-    if (!cachedFormattedCustomers || options?.forceLoading) {
+  const fetchCustomers = useCallback(async (search?: string, options?: { forceLoading?: boolean }) => {
+    const query = search !== undefined ? search : searchQuery;
+    if (!cachedFormattedCustomers || options?.forceLoading || (search !== undefined && search !== '')) {
       setIsLoading(true);
     }
     setError(null);
 
     try {
-      const data = await customerService.getCustomers();
-      
-      cachedCustomers = data;
+      const data = await customerService.getCustomers(query);
       const formatted = formatCustomerData(data);
-      cachedFormattedCustomers = formatted;
+      
+      if (!query) {
+        cachedCustomers = data;
+        cachedFormattedCustomers = formatted;
+      }
 
       setCustomers(data);
       setFormattedCustomers(formatted);
@@ -105,7 +112,15 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     } finally {
       setIsLoading(false);
     }
-  }, [formatCustomerData]);
+  }, [formatCustomerData, searchQuery]);
+
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  useEffect(() => {
+    fetchCustomers(debouncedQuery);
+  }, [debouncedQuery]);
 
   const fetchCustomerDetail = useCallback(async (id: string | number) => {
     const cachedDetail = cachedDetailMap.get(id);
@@ -189,16 +204,20 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
   }, [formatCustomerData]);
 
   useEffect(() => {
-    if (autoFetch) {
+    if (autoFetch && !debouncedQuery) {
       fetchCustomers();
     }
-  }, [autoFetch, fetchCustomers]);
+  }, [autoFetch]);
 
   return {
     customers,
     formattedCustomers,
     selectedCustomer,
     customerContacts,
+    searchQuery,
+    debouncedQuery,
+    setSearchQuery,
+    handleSearch,
     getCustomerById,
     isLoading,
     isRefreshing,

@@ -9,7 +9,7 @@ import { useCustomers } from '../hooks';
 
 export const CustomerScreen: React.FC = () => {
   const router = useRouter();
-  const { formattedCustomers, isLoading, isRefreshing, error, refreshCustomers } = useCustomers();
+  const { formattedCustomers, searchQuery, handleSearch, isLoading, isRefreshing, error, refreshCustomers } = useCustomers();
 
   const handleCustomerPress = useCallback((id?: string) => {
     if (id) {
@@ -50,7 +50,11 @@ export const CustomerScreen: React.FC = () => {
           />
         }
       >
-        <CustomerHeader />
+        <CustomerHeader 
+          searchValue={searchQuery}
+          onSearchChange={handleSearch}
+          totalCount={formattedCustomers.length}
+        />
 
         {isLoading && !isRefreshing && (
           <View style={styles.loadingContainer}>
