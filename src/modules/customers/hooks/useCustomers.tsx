@@ -1,34 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import { customerService } from '../services/customer.service';
-import { CustomerSummaryItem, CustomerDetailItem, CustomerItem } from '../types';
+import { CustomerSummaryItem, CustomerDetailItem, CustomerItem, CustomerContactSummaryItem } from '../types';
 import { getAvatarBackgroundColor } from '../constants/customer.constants';
 
 interface UseCustomersOptions {
   autoFetch?: boolean;
 }
 
-// ============================================================================
-// SWR In-Memory Module Cache (Bertahan saat navigasi berpindah halaman)
-// ============================================================================
 let cachedCustomers: CustomerSummaryItem[] | null = null;
 let cachedFormattedCustomers: CustomerItem[] | null = null;
 const cachedDetailMap = new Map<string | number, CustomerDetailItem>();
+const cachedContactsMap = new Map<string | number, CustomerContactSummaryItem[]>();
 
 export const useCustomers = (options: UseCustomersOptions = { autoFetch: true }) => {
   const { autoFetch = true } = options;
 
-  // 1. Inisialisasi State dari Cache SWR jika sudah tersedia (0ms render flicker!)
   const [customers, setCustomers] = useState<CustomerSummaryItem[]>(cachedCustomers || []);
   const [formattedCustomers, setFormattedCustomers] = useState<CustomerItem[]>(cachedFormattedCustomers || []);
+  const [customerContacts, setCustomerContacts] = useState<CustomerContactSummaryItem[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerDetailItem | null>(null);
   
-  // 2. Loading Spinner Status (Hanya TRUE jika belum ada data di Cache SWR sama sekali)
   const hasInitialData = Boolean(cachedFormattedCustomers && cachedFormattedCustomers.length > 0);
   const [isLoading, setIsLoading] = useState<boolean>(!hasInitialData);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper untuk mengonversi data API ke tampilan UI (CustomerItem)
   const formatCustomerData = useCallback((data: CustomerSummaryItem[]): CustomerItem[] => {
     return data.map((item) => {
       const name = item.customer_name || 'Unknown Customer';
@@ -46,7 +42,48 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     });
   }, []);
 
-  // 3. SWR Fetcher: Revalidasi data dari API Backend di background
+  const formatCustomerContactData = useCallback((data: CustomerContactSummaryItem[]): CustomerContactSummaryItem[] => {
+    return data.map((item) => ({
+      customer_contact_id: item.customer_contact_id,
+      customer_id: item.customer_id,
+      contact_name: item.contact_name || 'No Name',
+      job_title: item.job_title || 'No Title',
+      phone_number: item.phone_number || '-',
+      email: item.email || '-',
+      is_primary: item.is_primary ?? false,
+      status: item.status || 'ACTIVE',
+      created_at: item.created_at,
+    }));
+  }, []);
+
+  const fetchCustomerContact = useCallback(async (id: string | number, options?: { forceLoading?: boolean }) => {
+    const cachedContacts = cachedContactsMap.get(id);
+    
+    if (cachedContacts) {
+      setCustomerContacts(cachedContacts);
+    }
+
+    if (!cachedContacts || options?.forceLoading) {
+      setIsLoading(true);
+    }
+    setError(null);
+
+    try {
+      const data = await customerService.getCustomerContact(id);
+      const formatted = formatCustomerContactData(data);
+      
+      cachedContactsMap.set(id, formatted);
+      setCustomerContacts(formatted);
+      return formatted;
+    } catch (err: any) {
+      const errorMessage = err?.message || `Gagal mengambil daftar kontak untuk customer dengan ID: ${id}`;
+      setError(errorMessage);
+      return cachedContacts || [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [formatCustomerContactData]);
+
   const fetchCustomers = useCallback(async (options?: { forceLoading?: boolean }) => {
     if (!cachedFormattedCustomers || options?.forceLoading) {
       setIsLoading(true);
@@ -56,7 +93,6 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     try {
       const data = await customerService.getCustomers();
       
-      // Simpan ke Cache SWR Module Level
       cachedCustomers = data;
       const formatted = formatCustomerData(data);
       cachedFormattedCustomers = formatted;
@@ -71,7 +107,6 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     }
   }, [formatCustomerData]);
 
-  // 4. SWR Detail Fetcher: Ambil data 1 customer dari API Backend
   const fetchCustomerDetail = useCallback(async (id: string | number) => {
     const cachedDetail = cachedDetailMap.get(id);
     if (cachedDetail) {
@@ -95,7 +130,6 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     }
   }, []);
 
-  // 5. Helper Pemanggil Objek Customer berdasarkan ID murni dari data API / SWR Cache
   const getCustomerById = useCallback((id: string | undefined): CustomerItem => {
     const foundInList = formattedCustomers.find((item) => String(item.id) === String(id));
     
@@ -136,7 +170,6 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     };
   }, [selectedCustomer, formattedCustomers]);
 
-  // 6. Pull-to-Refresh Handler
   const refreshCustomers = useCallback(async () => {
     setIsRefreshing(true);
     setError(null);
@@ -155,7 +188,6 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     }
   }, [formatCustomerData]);
 
-  // 7. Auto Revalidate saat Mount
   useEffect(() => {
     if (autoFetch) {
       fetchCustomers();
@@ -166,12 +198,15 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true })
     customers,
     formattedCustomers,
     selectedCustomer,
+    customerContacts,
     getCustomerById,
     isLoading,
     isRefreshing,
     error,
     fetchCustomers,
     fetchCustomerDetail,
+    fetchCustomerContact,
+    formatCustomerContactData,
     refreshCustomers,
     setError,
   };

@@ -4,11 +4,11 @@ import { Feather } from '@expo/vector-icons';
 import { Colors } from '../constants';
 
 export interface ContactCardProps {
-  id?: string;
+  id?: string | number;
   name: string;
-  role: string;
-  email: string;
-  phone?: string;
+  role?: string | null;
+  email?: string | null;
+  phone?: string | null;
   avatarBackgroundColor?: string;
   onPress?: () => void;
 }
@@ -49,9 +49,9 @@ export const ContactCard: React.FC<ContactCardProps> = ({
       
       <View style={styles.contactInfo}>
         <Text style={styles.contactName}>{name}</Text>
-        <Text style={styles.contactRole}>{role}</Text>
+        {role ? <Text style={styles.contactRole}>{role}</Text> : null}
         <Text style={styles.contactMeta}>
-          {email} {phone ? `· ${phone}` : ''}
+          {email || '-'}{phone ? ` · ${phone}` : ''}
         </Text>
       </View>
 

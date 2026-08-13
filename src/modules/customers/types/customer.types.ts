@@ -30,16 +30,6 @@ export interface CustomerItem {
     onPress?: () => void;
 }
 
-export interface ContactPersonItem {
-    id?: string;
-    name: string;
-    role: string;
-    email: string;
-    phone: string;
-    avatarBackgroundColor?: string;
-    onPress?: () => void;
-}
-
 export interface DealItem {
     id?: string;
     title: string;
@@ -78,4 +68,19 @@ export interface CustomerDetailItem extends CustomerSummaryItem {
     email?: string;
     phone?: string;
   }>;
+}
+
+export type ContactStatus = 'ACTIVE' | 'INACTIVE';
+/** Interface tepat sesuai JSON response dari GET /api/customers/:id/contacts */
+
+export interface CustomerContactSummaryItem {
+  customer_contact_id: string | number;
+  customer_id: string | number;
+  contact_name: string;
+  job_title?: string | null;
+  phone_number?: string | null;
+  email?: string | null;
+  is_primary: boolean;
+  status: ContactStatus;
+  created_at?: string;
 }

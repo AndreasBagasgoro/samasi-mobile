@@ -52,7 +52,6 @@ export const CustomerScreen: React.FC = () => {
       >
         <CustomerHeader />
 
-        {/* Status Loading Spinner (Hanya muncul jika belum ada data di Cache SWR) */}
         {isLoading && !isRefreshing && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#3d81c5" />
@@ -60,14 +59,12 @@ export const CustomerScreen: React.FC = () => {
           </View>
         )}
 
-        {/* Banner Pesan Error (jika ada) */}
         {error && !isLoading && (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
           </View>
         )}
 
-        {/* Daftar Customer (Instant render dari SWR cache tanpa spinner berulang saat navigasi) */}
         {!isLoading && (
           <View style={styles.contactCardContainer}>
             {renderedCustomerList}

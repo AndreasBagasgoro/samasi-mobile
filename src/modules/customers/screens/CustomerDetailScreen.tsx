@@ -59,21 +59,18 @@ export const CustomerDetailScreen: React.FC = () => {
         <SafeAreaView style={styles.container}>
             <StatusBar style="light" />
 
-            {/* 1. Header Kembali & Ringkasan Customer */}
             <DetailHeader
                 {...customer}
                 avatarBackgroundColor={avatarBg}
                 onPress={() => router.back()}
             />
 
-            {/* 2. Navigation Tab Bar (Animasi Gliding Underline Synced ScrollX) */}
             <Navigation
                 activeTab={activeTab}
                 onTabPress={handleTabPress}
                 scrollX={scrollX}
             />
 
-            {/* 3. Horizontal Swipable Pager (Mendukung Swipe Kiri/Kanan & Scroll Vertikal Atas/Bawah) */}
             <Animated.ScrollView
                 ref={scrollViewRef}
                 horizontal

@@ -2,7 +2,8 @@ import { mobileApiService } from "@shared/services";
 
 import {
     CustomerSummaryItem,
-    CustomerDetailItem
+    CustomerDetailItem,
+    CustomerContactSummaryItem
 } from '../types';
 
 export const customerService = {
@@ -14,4 +15,9 @@ export const customerService = {
         const response = await mobileApiService.get<CustomerDetailItem>(`/customers/${id}`);
         return response.data;
     },
+
+    async getCustomerContact(id: string | number): Promise<CustomerContactSummaryItem[]> {
+        const response = await mobileApiService.get<CustomerContactSummaryItem[]>(`/customers/${id}/contacts`);
+        return response.data;
+    }
 }
