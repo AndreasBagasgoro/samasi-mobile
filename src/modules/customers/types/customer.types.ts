@@ -84,3 +84,19 @@ export interface CustomerContactSummaryItem {
   status: ContactStatus;
   created_at?: string;
 }
+
+export interface CustomerListParams {
+    search?: string;
+    page?: number;
+    per_page?: number;
+}
+
+export interface CustomerListResponse {
+    data: CustomerSummaryItem[];
+    meta: {
+        total: number;
+        page: number;
+        per_page: number;
+        total_pages: number;
+    };
+}

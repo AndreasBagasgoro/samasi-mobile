@@ -1,26 +1,12 @@
 import { mobileApiService } from "@shared/services";
 
 import {
-    CustomerSummaryItem,
     CustomerDetailItem,
-    CustomerContactSummaryItem
+    CustomerContactSummaryItem,
+    CustomerListParams,
+    CustomerListResponse
 } from '../types';
 
-export interface CustomerListParams {
-    search?: string;
-    page?: number;
-    per_page?: number;
-}
-
-export interface CustomerListResponse {
-    data: CustomerSummaryItem[];
-    meta: {
-        total: number;
-        page: number;
-        per_page: number;
-        total_pages: number;
-    };
-}
 
 export const customerService = {
     async getCustomers(params?: CustomerListParams): Promise<CustomerListResponse> {
@@ -29,7 +15,6 @@ export const customerService = {
         if (params?.page !== undefined) queryParams.page = String(params.page);
         if (params?.per_page !== undefined) queryParams.per_page = String(params.per_page);
 
-        // Backend response: { data: [...], meta: { page, per_page, total, total_pages } }
         const raw = await mobileApiService.get<any>('/customers', queryParams) as any;
 
         return {
