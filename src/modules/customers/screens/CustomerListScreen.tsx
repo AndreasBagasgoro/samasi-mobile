@@ -14,6 +14,8 @@ export const CustomerScreen: React.FC = () => {
     formattedCustomers,
     searchQuery,
     handleSearch,
+    selectedCustomerTypeId,
+    handleFilterChange,
     pagination,
     currentPage,
     goToPage,
@@ -65,6 +67,8 @@ export const CustomerScreen: React.FC = () => {
           searchValue={searchQuery}
           onSearchChange={handleSearch}
           totalCount={pagination.total}
+          selectedFilterId={selectedCustomerTypeId}
+          onFilterChange={handleFilterChange}
         />
 
         {isLoading && !isRefreshing && (

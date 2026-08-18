@@ -31,6 +31,7 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const debouncedQuery = useDebounce(searchQuery, 500);
+  const [selectedCustomerTypeId, setSelectedCustomerTypeId] = useState<string>('all');
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pagination, setPagination] = useState<PaginationMeta>({ total: 0, page: 1, per_page: defaultLimit, total_pages: 1 });
@@ -99,20 +100,33 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
     }
   }, [formatCustomerContactData]);
 
-  const fetchCustomers = useCallback(async (search?: string, page = 1, opts?: { forceLoading?: boolean }) => {
+  const fetchCustomers = useCallback(async (
+    search?: string,
+    page = 1,
+    typeId?: string,
+    opts?: { forceLoading?: boolean }
+  ) => {
     const query = search !== undefined ? search : debouncedQuery;
+    const activeTypeId = typeId !== undefined ? typeId : selectedCustomerTypeId;
 
-    if (!cachedFormattedCustomers || opts?.forceLoading || page > 1 || (search !== undefined && search !== '')) {
+    const isFilterActive = (search !== undefined && search !== '') || (activeTypeId !== 'all' && activeTypeId !== '');
+
+    if (!cachedFormattedCustomers || opts?.forceLoading || page > 1 || isFilterActive) {
       setIsLoading(true);
     }
     setError(null);
 
     try {
-      const response = await customerService.getCustomers({ search: query, page, per_page: defaultLimit });
+      const response = await customerService.getCustomers({
+        search: query,
+        page,
+        per_page: defaultLimit,
+        customer_type_id: activeTypeId !== 'all' ? activeTypeId : undefined,
+      });
       const formatted = formatCustomerData(response.data);
 
-      // Simpan ke cache hanya jika halaman 1 tanpa query
-      if (!query && page === 1) {
+      // Simpan ke cache hanya jika halaman 1 tanpa query dan tanpa filter
+      if (!query && page === 1 && activeTypeId === 'all') {
         cachedCustomers = response.data;
         cachedFormattedCustomers = formatted;
       }
@@ -127,22 +141,27 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
     } finally {
       setIsLoading(false);
     }
-  }, [formatCustomerData, defaultLimit, debouncedQuery]);
+  }, [formatCustomerData, defaultLimit, debouncedQuery, selectedCustomerTypeId]);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     setCurrentPage(1);
   }, []);
 
+  const handleFilterChange = useCallback((typeId: string) => {
+    setSelectedCustomerTypeId(typeId);
+    setCurrentPage(1);
+  }, []);
+
   const goToPage = useCallback((page: number) => {
     setCurrentPage(page);
-    fetchCustomers(debouncedQuery, page);
-  }, [fetchCustomers, debouncedQuery]);
+    fetchCustomers(debouncedQuery, page, selectedCustomerTypeId);
+  }, [fetchCustomers, debouncedQuery, selectedCustomerTypeId]);
 
-  // Trigger fetch saat debounced query berubah, reset ke halaman 1
+  // Trigger fetch saat debounced query atau filter tipe berubah, reset ke halaman 1
   useEffect(() => {
-    fetchCustomers(debouncedQuery, 1);
-  }, [debouncedQuery]);
+    fetchCustomers(debouncedQuery, 1, selectedCustomerTypeId);
+  }, [debouncedQuery, selectedCustomerTypeId]);
 
   const fetchCustomerDetail = useCallback(async (id: string | number) => {
     const cachedDetail = cachedDetailMap.get(id);
@@ -211,10 +230,18 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
     setIsRefreshing(true);
     setError(null);
     try {
-      const response = await customerService.getCustomers({ page: 1, per_page: defaultLimit });
-      cachedCustomers = response.data;
+      const response = await customerService.getCustomers({
+        page: 1,
+        per_page: defaultLimit,
+        search: debouncedQuery,
+        customer_type_id: selectedCustomerTypeId !== 'all' ? selectedCustomerTypeId : undefined,
+      });
       const formatted = formatCustomerData(response.data);
-      cachedFormattedCustomers = formatted;
+
+      if (!debouncedQuery && selectedCustomerTypeId === 'all') {
+        cachedCustomers = response.data;
+        cachedFormattedCustomers = formatted;
+      }
 
       setCustomers(response.data);
       setFormattedCustomers(formatted);
@@ -225,11 +252,11 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
     } finally {
       setIsRefreshing(false);
     }
-  }, [formatCustomerData, defaultLimit]);
+  }, [formatCustomerData, defaultLimit, debouncedQuery, selectedCustomerTypeId]);
 
   useEffect(() => {
-    if (autoFetch && !debouncedQuery) {
-      fetchCustomers(undefined, 1);
+    if (autoFetch && !debouncedQuery && selectedCustomerTypeId === 'all') {
+      fetchCustomers(undefined, 1, 'all');
     }
   }, [autoFetch]);
 
@@ -242,6 +269,9 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
     debouncedQuery,
     setSearchQuery,
     handleSearch,
+    selectedCustomerTypeId,
+    setSelectedCustomerTypeId,
+    handleFilterChange,
     pagination,
     currentPage,
     goToPage,

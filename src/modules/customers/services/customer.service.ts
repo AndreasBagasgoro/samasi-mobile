@@ -16,7 +16,9 @@ export const customerService = {
         if (params?.search && params.search.trim()) queryParams.search = params.search.trim();
         if (params?.page !== undefined) queryParams.page = String(params.page);
         if (params?.per_page !== undefined) queryParams.per_page = String(params.per_page);
-
+        if (params?.customer_type_id && params.customer_type_id !== 'all') {
+            queryParams.customer_type_id = String(params.customer_type_id);
+        }
         const raw = await mobileApiService.get<any>('/customers', queryParams) as any;
 
         return {

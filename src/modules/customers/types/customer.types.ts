@@ -89,6 +89,7 @@ export interface CustomerListParams {
     search?: string;
     page?: number;
     per_page?: number;
+    customer_type_id?: string | number; 
 }
 
 export interface CustomerListResponse {
