@@ -4,7 +4,9 @@ import {
     CustomerDetailItem,
     CustomerContactSummaryItem,
     CustomerListParams,
-    CustomerListResponse
+    CustomerListResponse,
+    CustomerTypeResponse,
+    CustomerTypeNameResponse
 } from '../types';
 
 
@@ -36,5 +38,43 @@ export const customerService = {
     async getCustomerContact(id: string | number): Promise<CustomerContactSummaryItem[]> {
         const response = await mobileApiService.get<CustomerContactSummaryItem[]>(`/customers/${id}/contacts`);
         return response.data;
+    },
+
+    async getCustomerTypes(params?: CustomerListParams): Promise<CustomerTypeResponse> {
+        const queryParams: Record<string, string> = {};
+        if (params?.search && params.search.trim()) queryParams.search = params.search.trim();
+        if (params?.page !== undefined) queryParams.page = String(params.page);
+        if (params?.per_page !== undefined) queryParams.per_page = String(params.per_page);
+
+        const raw = await mobileApiService.get<any>('/customers/types', queryParams) as any;
+
+        return {
+            data: raw.data ?? [],
+            meta: {
+                page: raw.meta?.page ?? 1,
+                per_page: raw.meta?.per_page ?? params?.per_page ?? 10,
+                total: raw.meta?.total ?? 0,
+                total_pages: raw.meta?.total_pages ?? 1,
+            },
+        };
+    },
+
+    async getCustomerTypeNames(params?: CustomerListParams): Promise<CustomerTypeNameResponse> {
+        const queryParams: Record<string, string> = {};
+        if (params?.search && params.search.trim()) queryParams.search = params.search.trim();
+        if (params?.page !== undefined) queryParams.page = String(params.page);
+        if (params?.per_page !== undefined) queryParams.per_page = String(params.per_page);
+
+        const raw = await mobileApiService.get<any>('/customers/type-name-list', queryParams) as any;
+
+        return {
+            data: raw.data ?? [],
+            meta: {
+                page: raw.meta?.page ?? 1,
+                per_page: raw.meta?.per_page ?? params?.per_page ?? 10,
+                total: raw.meta?.total ?? 0,
+                total_pages: raw.meta?.total_pages ?? 1,
+            },
+        };
     }
 }

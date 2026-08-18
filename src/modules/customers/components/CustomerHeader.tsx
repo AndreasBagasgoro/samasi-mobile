@@ -1,23 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, StyleSheet, Text, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Colors, Layout } from '@shared/constants';
 import { Input } from '@shared/components';
 import { Filter } from './Filter';
-import { FILTER_ITEMS } from '../constants/customer.constants';
+import { useCustomerTypes } from '../hooks/useCustomerTypes';
+import { FilterItem } from '../types';
 
 interface CustomerHeaderProps {
     searchValue?: string;
     onSearchChange?: (text: string) => void;
     totalCount?: number;
+    selectedFilterId?: string;
+    onFilterChange?: (filterId: string) => void;
 }
 
 export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
     searchValue = '',
     onSearchChange,
     totalCount,
+    selectedFilterId,
+    onFilterChange,
 }) => {
-    const [activeFilterId, setActiveFilterId] = useState('all');
+    const [internalFilterId, setInternalFilterId] = useState('all');
+    const { formattedCustomerTypes } = useCustomerTypes();
+
+    const activeFilterId = selectedFilterId !== undefined ? selectedFilterId : internalFilterId;
+
+    const dynamicFilterItems = useMemo<FilterItem[]>(() => {
+        const allItem: FilterItem = {
+            id: 'all',
+            label: 'All',
+            value: 'all',
+            selected: activeFilterId === 'all',
+        };
+
+        const typeItems: FilterItem[] = formattedCustomerTypes.map((type) => {
+            const id = String(type.customer_type_id);
+            return {
+                id,
+                label: type.customer_type_name,
+                value: id,
+                selected: activeFilterId === id,
+            };
+        });
+
+        return [allItem, ...typeItems];
+    }, [formattedCustomerTypes, activeFilterId]);
+
+    const handleFilterPress = (filterId: string) => {
+        setInternalFilterId(filterId);
+        onFilterChange?.(filterId);
+    };
 
     return (
         <View style={styles.container}>
@@ -47,7 +81,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
                 contentContainerStyle={styles.filterContent}
                 style={styles.filterScrollView}
             >
-                {FILTER_ITEMS.map((item) => {
+                {dynamicFilterItems.map((item) => {
                     const itemId = item.id ?? item.value;
                     const isSelected = activeFilterId === itemId;
                     return (
@@ -56,10 +90,7 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
                             label={item.label}
                             value={item.value}
                             selected={isSelected}
-                            onPress={() => {
-                                setActiveFilterId(itemId);
-                                item.onPress?.();
-                            }}
+                            onPress={() => handleFilterPress(itemId)}
                         />
                     );
                 })}

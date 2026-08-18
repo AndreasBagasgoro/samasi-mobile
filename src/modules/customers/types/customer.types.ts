@@ -100,3 +100,40 @@ export interface CustomerListResponse {
         total_pages: number;
     };
 }
+
+export interface CustomerTypeItem {
+    customer_type_id: string | number;
+    customer_type_code: string;
+    customer_type_name: string;
+    description?: string | null;
+    status: 'ACTIVE' | 'INACTIVE';
+    created_at?: string;
+    created_by?: string;
+    updated_at?: string;
+    updated_by?: string;
+}
+
+export interface CustomerTypeNameItem {
+    customer_type_id: string | number;
+    customer_type_name: string;
+}
+
+export interface CustomerTypeResponse {
+    data: CustomerTypeItem[];
+    meta: {
+        total: number;
+        page: number;
+        per_page: number;
+        total_pages: number;
+    };
+}
+
+export interface CustomerTypeNameResponse {
+    data: CustomerTypeNameItem[];
+    meta: {
+        total: number;
+        page: number;
+        per_page: number;
+        total_pages: number;
+    };
+}
