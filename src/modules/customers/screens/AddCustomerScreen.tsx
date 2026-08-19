@@ -10,7 +10,6 @@ export const AddCustomerScreen: React.FC = () => {
       <StatusBar style="dark" />
       <FormHeader
         title="Add Customer"
-        description="New Data"
       />
       <ScrollView showsVerticalScrollIndicator={false}>
         <CustomerForm />

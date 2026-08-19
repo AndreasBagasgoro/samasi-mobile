@@ -7,6 +7,8 @@ import { CustomerHeader, CustomerCard } from '../components';
 import { Colors, Layout } from '@shared/constants';
 import { Pagination } from '@shared/components';
 import { useCustomers } from '../hooks';
+import { CustomerNotFound } from '@modules/customers/screens';
+
 
 export const CustomerScreen: React.FC = () => {
   const router = useRouter();
@@ -84,13 +86,14 @@ export const CustomerScreen: React.FC = () => {
           </View>
         )}
 
-        {!isLoading && (
+        {!isLoading && formattedCustomers.length > 0 && (
           <View style={styles.contactCardContainer}>
             {renderedCustomerList}
           </View>
         )}
-
-        {/* Komponen Pagination */}
+        {!isLoading && !error && formattedCustomers.length === 0 && (
+          <CustomerNotFound />
+        )}
         {!isLoading && pagination.total_pages > 1 && (
           <Pagination
             currentPage={currentPage}

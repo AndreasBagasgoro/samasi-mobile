@@ -1,72 +1,137 @@
 import React from 'react';
-import { View, Text, StyleSheet, StyleProp, ViewStyle, TextStyle } from 'react-native';
-import { Colors, Layout } from '../constants';
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import Entypo from '@expo/vector-icons/Entypo';
+import { Layout, Colors } from "@shared/constants";
+import { useRouter } from 'expo-router';
 
 export interface FormHeaderProps {
-    title: string;
-    description?: string;
-    onCancel?: () => void;
+    title?: string;
+    onBack?: () => void;
     onSave?: () => void;
-    containerStyle?: StyleProp<ViewStyle>;
-    actionContainerStyle?: StyleProp<ViewStyle>;
-    actionStyle?: StyleProp<TextStyle>;
-    titleStyle?: StyleProp<TextStyle>;
+    saveText?: string;
+    isSaving?: boolean;
 }
-
 export const FormHeader: React.FC<FormHeaderProps> = ({
-    title,
-    description,
-    onCancel,
+    title = 'Header Title',
+    onBack,
     onSave,
-    containerStyle,
-    actionContainerStyle,
-    actionStyle,
-    titleStyle,
+    saveText = 'Save',
+    isSaving = false,
 }) => {
+
+    const router = useRouter();
+
+    const handleBack = () => {
+        if (onBack) {
+            onBack();
+        } else {
+            router.back();
+        }
+    };
     return (
-        <View style={[styles.container, containerStyle]}>
-            <View style={styles.head}>
-                <Text style={[styles.title, titleStyle]}>{title}</Text>
-                {description ? (
-                    <View style={[styles.actionContainer, actionContainerStyle]}>
-                        <Text style={[styles.action, actionStyle]}>{description}</Text>
-                    </View>
-                ) : null}
+        <View style={styles.headerContainer}>
+            {/* 1. Title Absolute Center (Selalu tepat di tengah layar) */}
+            <View style={styles.titleContainer} pointerEvents="none">
+                <Text style={styles.title} numberOfLines={1}>
+                    {title}
+                </Text>
             </View>
+
+            {/* 2. Tombol Back */}
+            <TouchableOpacity
+                style={styles.backButton}
+                onPress={handleBack}
+                activeOpacity={0.7}
+            >
+                <Entypo name="chevron-left" size={22} color={Colors.text.primary} />
+                <Text style={styles.backText}>Back</Text>
+            </TouchableOpacity>
+
+            {/* 3. Tombol Save */}
+            <TouchableOpacity
+                style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+                onPress={onSave}
+                disabled={isSaving}
+                activeOpacity={0.8}
+            >
+                <Text style={styles.saveButtonText}>{saveText}</Text>
+            </TouchableOpacity>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    screen: {
+        flex: 1,
         backgroundColor: Colors.background,
-        paddingHorizontal: Layout.screenPaddingHorizontal2,
-        paddingTop: 28,
-        paddingBottom: 20,
-        gap: 16,
-        borderBottomWidth: 2,
-        borderBottomColor: Colors.border,
     },
-    head: {
-        justifyContent: 'space-between',
+    headerContainer: {
+        position: 'relative',
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: Colors.surface,
+        paddingHorizontal: Layout.screenPaddingHorizontal2,
+        paddingTop: 28,
+        paddingBottom: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
+        minHeight: 80,
     },
-    title: {
-        fontSize: 22,
-        fontWeight: '600',
+    backButton: {
+        height: 40,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 2,
+        zIndex: 1,
+    },
+    backText: {
+        fontSize: 16,
+        fontWeight: '400',
         color: Colors.text.primary,
     },
-    actionContainer: {
-        backgroundColor: Colors.background2,
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        alignItems: 'center',
+    titleContainer: {
+        position: 'absolute',
+        left: 80,
+        right: 80,
+        top: 28,
+        bottom: 16,
         justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 0,
     },
-    action: {
+    title: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: Colors.text.primary,
+        textAlign: 'center',
+    },
+    saveButton: {
+        backgroundColor: Colors.semantic.info,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 6,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minWidth: 48,
+        zIndex: 1,
+    },
+    saveButtonDisabled: {
+        opacity: 0.6,
+    },
+    saveButtonText: {
         fontSize: 12,
+        fontWeight: '500',
+        color: Colors.text.inverse,
+    },
+    bodyContent: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+    },
+    previewText: {
+        fontSize: 14,
         color: Colors.text.secondary,
     },
 });

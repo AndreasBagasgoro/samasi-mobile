@@ -19,7 +19,14 @@ export const Colors = {
     success: '#28A745',
     warning: '#FFC107',
     error: '#DC3545',
-    info: '#3B82F6',
+    info: '#1A56DB',
+  },
+  
+  semanticBg: {
+    success: '#D1FAE5',
+    warning: '#FEF3C7',
+    error: '#FECDD3',
+    info: '#DBEAFE',
   },
   
   border: '#E2E8F0',
