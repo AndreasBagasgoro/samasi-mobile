@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { customerService } from '../services/customer.service';
-import { CustomerSummaryItem, CustomerDetailItem, CustomerItem, CustomerContactSummaryItem } from '../types';
+import { CustomerSummaryItem, CustomerDetailItem, CustomerItem, CustomerContactSummaryItem, CreateCustomerPayload } from '../types';
 import { getAvatarBackgroundColor } from '../constants/customer.constants';
 import { useDebounce } from '@shared/hooks';
 
@@ -158,10 +158,12 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
     fetchCustomers(debouncedQuery, page, selectedCustomerTypeId);
   }, [fetchCustomers, debouncedQuery, selectedCustomerTypeId]);
 
-  // Trigger fetch saat debounced query atau filter tipe berubah, reset ke halaman 1
+  // Trigger fetch saat debounced query atau filter tipe berubah (hanya jika autoFetch true)
   useEffect(() => {
-    fetchCustomers(debouncedQuery, 1, selectedCustomerTypeId);
-  }, [debouncedQuery, selectedCustomerTypeId]);
+    if (autoFetch) {
+      fetchCustomers(debouncedQuery, 1, selectedCustomerTypeId);
+    }
+  }, [debouncedQuery, selectedCustomerTypeId, autoFetch, fetchCustomers]);
 
   const fetchCustomerDetail = useCallback(async (id: string | number) => {
     const cachedDetail = cachedDetailMap.get(id);
@@ -254,11 +256,23 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
     }
   }, [formatCustomerData, defaultLimit, debouncedQuery, selectedCustomerTypeId]);
 
-  useEffect(() => {
-    if (autoFetch && !debouncedQuery && selectedCustomerTypeId === 'all') {
-      fetchCustomers(undefined, 1, 'all');
+  const createCustomer = useCallback(async (payload: CreateCustomerPayload): Promise<CustomerDetailItem | null> => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await customerService.createCustomer(payload);
+      // Invalidate customer list cache so next fetch gets fresh data
+      cachedCustomers = null;
+      cachedFormattedCustomers = null;
+      return data;
+    } catch (err: any) {
+      const errorMessage = err?.message || 'Gagal menambahkan customer baru.';
+      setError(errorMessage);
+      return null;
+    } finally {
+      setIsLoading(false);
     }
-  }, [autoFetch]);
+  }, []);
 
   return {
     customers,
@@ -283,6 +297,7 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
     fetchCustomerDetail,
     fetchCustomerContact,
     formatCustomerContactData,
+    createCustomer,
     refreshCustomers,
     setError,
   };

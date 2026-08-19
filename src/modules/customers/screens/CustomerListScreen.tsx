@@ -5,9 +5,11 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { CustomerHeader, CustomerCard } from '../components';
 import { Colors, Layout } from '@shared/constants';
-import { Pagination } from '@shared/components';
+import { Pagination, FloatingButton } from '@shared/components';
 import { useCustomers } from '../hooks';
 import { CustomerNotFound } from '@modules/customers/screens';
+import { Platform } from 'react-native';
+
 
 
 export const CustomerScreen: React.FC = () => {
@@ -27,7 +29,11 @@ export const CustomerScreen: React.FC = () => {
     refreshCustomers,
   } = useCustomers();
 
-  const handleCustomerPress = useCallback((id?: string) => {
+  const handleCustomerPress = useCallback((id?: string, e?: any) => {
+    if (Platform.OS === 'web') {
+    e?.currentTarget?.blur?.();
+  }
+
     if (id) {
       router.push(`/home/customers/${id}`);
     }
@@ -106,6 +112,11 @@ export const CustomerScreen: React.FC = () => {
           />
         )}
       </ScrollView>
+
+      <FloatingButton
+        targetRoute="/home/customers/add-contact"
+        accessibilityLabel="Add Customer"
+      />
     </SafeAreaView>
   );
 };

@@ -1,10 +1,10 @@
 import { ApiError, ApiResponse } from '../types';
 import { storageService } from './storage.service';
 
-export const AUTH_API_URL = process.env.EXPO_PUBLIC_AUTH_API_URL || 'http://localhost:3010/api/v1';
-export const MASTER_API_URL = process.env.EXPO_PUBLIC_MASTER_API_URL || 'http://localhost:3020/api/v1';
-export const HR_API_URL = process.env.EXPO_PUBLIC_HR_API_URL || 'http://localhost:3030/api/v1';
-export const MOBILE_API_URL = process.env.EXPO_PUBLIC_MOBILE_API_URL || 'http://localhost:3040/api/v1';
+export const AUTH_API_URL = process.env.EXPO_PUBLIC_AUTH_API_URL || 'http://localhost:3010/api/v1/auth';
+export const MASTER_API_URL = process.env.EXPO_PUBLIC_MASTER_API_URL || 'http://localhost:3020/api/v1/master';
+export const HR_API_URL = process.env.EXPO_PUBLIC_HR_API_URL || 'http://localhost:3030/api/v1/hr';
+export const MOBILE_API_URL = process.env.EXPO_PUBLIC_MOBILE_API_URL || 'http://localhost:3040/api/v1/mobile';
 export const DEFAULT_BASE_URL = process.env.EXPO_PUBLIC_API_URL || AUTH_API_URL;
 
 export class ApiService {

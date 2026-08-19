@@ -6,11 +6,17 @@ import {
     CustomerListParams,
     CustomerListResponse,
     CustomerTypeResponse,
-    CustomerTypeNameResponse
+    CustomerTypeNameResponse,
+    CreateCustomerPayload,
 } from '../types';
 
 
 export const customerService = {
+    async createCustomer(payload: CreateCustomerPayload): Promise<CustomerDetailItem> {
+        const response = await mobileApiService.post<CustomerDetailItem>('/customers', payload);
+        return response.data;
+    },
+
     async getCustomers(params?: CustomerListParams): Promise<CustomerListResponse> {
         const queryParams: Record<string, string> = {};
         if (params?.search && params.search.trim()) queryParams.search = params.search.trim();

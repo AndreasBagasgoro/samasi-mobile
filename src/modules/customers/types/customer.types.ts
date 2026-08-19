@@ -85,6 +85,21 @@ export interface CustomerContactSummaryItem {
   created_at?: string;
 }
 
+export interface CreateCustomerPayload {
+  customer_name: string;
+  customer_code?: string;
+  short_name?: string;
+  customer_type_id: string | number;
+  npwp?: string;
+  address?: string;
+  billing_address?: string;
+  city?: string;
+  document_category_id?: string | number;
+  payment_term_days?: number;
+  email?: string;
+  status?: 'ACTIVE' | 'INACTIVE';
+}
+
 export interface CustomerListParams {
     search?: string;
     page?: number;

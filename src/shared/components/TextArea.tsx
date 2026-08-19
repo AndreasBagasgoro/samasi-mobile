@@ -6,70 +6,67 @@ import {
   StyleSheet,
   TextInputProps,
   ViewStyle,
+  TextStyle,
 } from 'react-native';
 import { Colors, Spacing, Typography } from '../constants';
 
-// Disable native browser password reveal icon (Edge / Chrome / IE) on Web platform
-if (typeof document !== 'undefined' && !document.getElementById('disable-native-password-reveal')) {
-  const styleEl = document.createElement('style');
-  styleEl.id = 'disable-native-password-reveal';
-  styleEl.innerHTML = `
-    input::-ms-reveal,
-    input::-ms-clear {
-      display: none !important;
-    }
-  `;
-  document.head.appendChild(styleEl);
-}
-
-export interface InputProps extends TextInputProps {
+export interface TextAreaProps extends TextInputProps {
   label?: string;
   error?: string;
   leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
   containerStyle?: ViewStyle;
   inputContainerStyle?: ViewStyle;
+  minHeight?: number;
+  showCharacterCount?: boolean;
 }
 
-export const Input: React.FC<InputProps> = ({
+export const TextArea: React.FC<TextAreaProps> = ({
   label,
   error,
   leftIcon,
-  rightIcon,
   containerStyle,
   inputContainerStyle,
   style,
   editable = true,
-  multiline = false,
+  numberOfLines = 4,
+  minHeight = 110,
+  maxLength,
+  showCharacterCount = false,
+  value,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
+  const currentLength = typeof value === 'string' ? value.length : 0;
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {Boolean(label) && <Text style={styles.label}>{label}</Text>}
-      
+      {label && <Text style={styles.label}>{label}</Text>}
+
       <View
         style={[
           styles.inputContainer,
+          { minHeight },
           inputContainerStyle,
           isFocused && styles.inputFocused,
           error ? styles.inputError : null,
           !editable && styles.inputDisabled,
-          multiline && styles.inputMultiline,
         ]}
       >
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
-        
+
         <TextInput
           style={[
-            styles.input,
-            multiline && styles.textArea,
+            styles.textArea,
+            { minHeight: minHeight - 16 },
             style,
           ]}
           placeholderTextColor={Colors.text.disabled}
           editable={editable}
-          multiline={multiline}
+          multiline={true}
+          numberOfLines={numberOfLines}
+          textAlignVertical="top"
+          value={value}
+          maxLength={maxLength}
           onFocus={(e) => {
             setIsFocused(true);
             props.onFocus?.(e);
@@ -80,11 +77,21 @@ export const Input: React.FC<InputProps> = ({
           }}
           {...props}
         />
-        
-        {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
       </View>
 
-      {Boolean(error) && <Text style={styles.errorText}>{error}</Text>}
+      <View style={styles.footerContainer}>
+        {error ? (
+          <Text style={styles.errorText}>{error}</Text>
+        ) : (
+          <View style={{ flex: 1 }} />
+        )}
+
+        {showCharacterCount && maxLength && (
+          <Text style={styles.charCountText}>
+            {currentLength}/{maxLength}
+          </Text>
+        )}
+      </View>
     </View>
   );
 };
@@ -103,49 +110,53 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     borderWidth: 1.5,
     borderColor: '#E2E8F0',
     borderRadius: 12,
     backgroundColor: Colors.surface,
-    minHeight: 48,
+    paddingVertical: 8,
   },
   inputFocused: {
     borderColor: Colors.text.disabled,
     borderWidth: 2,
   },
-  inputError: { 
+  inputError: {
     borderColor: Colors.semantic.error,
   },
   inputDisabled: {
     backgroundColor: Colors.background,
     borderColor: Colors.border,
   },
-  inputMultiline: {
-    alignItems: 'flex-start',
-  },
   leftIcon: {
     paddingLeft: Spacing.md,
+    paddingTop: Spacing.sm,
   },
-  rightIcon: {
-    paddingRight: Spacing.md,
-  },
-  input: {
+  textArea: {
     flex: 1,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.xs,
     ...Typography.styles.body,
     color: Colors.text.primary,
-    minHeight: 48,
+    textAlignVertical: 'top',
     outlineStyle: 'none',
   } as any,
-  textArea: {
-    minHeight: 100,
-    textAlignVertical: 'top',
+  footerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Spacing.xs,
   },
   errorText: {
     ...Typography.styles.caption,
     color: Colors.semantic.error,
-    marginTop: Spacing.xs,
+    flex: 1,
+  },
+  charCountText: {
+    ...Typography.styles.caption,
+    color: Colors.text.secondary,
+    marginLeft: Spacing.sm,
   },
 });
+
+export default TextArea;
