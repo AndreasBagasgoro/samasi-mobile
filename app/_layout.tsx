@@ -56,6 +56,7 @@ export default function RootLayout() {
             <Stack.Screen name="auth" />
             <Stack.Screen name="home" />
             <Stack.Screen name="index" />
+            <Stack.Screen name="sandbox" />
           </Stack>
         </AuthGuard>
         {!fontsLoaded && (

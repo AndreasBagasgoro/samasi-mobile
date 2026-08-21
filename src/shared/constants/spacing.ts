@@ -9,6 +9,8 @@ export const Spacing = {
 
 export const Layout = {
   screenPaddingHorizontal: 32,
+  screenPaddingHorizontal2: 16,
+  screenPaddingHorizontal3: 20,
   screenPaddingVertical: 16,
   containerPaddingHorizontal: 24,
   cardPaddingHorizontal: 16,

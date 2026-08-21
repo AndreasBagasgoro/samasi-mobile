@@ -9,27 +9,22 @@ interface AuthGuardProps {
 
 export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const { isAuthenticated, isHydrated } = useAuthStore();
-  const segments = useSegments();
+  const segments = useSegments() as string[];
   const router = useRouter();
 
+  const currentSegment = (segments ?? [])[0];
+  const isBypassed = currentSegment === 'sandbox';
+  const inAuthGroup = currentSegment === 'auth';
+
   useEffect(() => {
-    if (!isHydrated) return;
-
-    const currentSegment = segments[0];
-    const isBypassed = currentSegment === 'sandbox';
-    const inAuthGroup = currentSegment === 'auth';
-
-    // Bypass AuthGuard for sandbox and testing routes
-    if (isBypassed) return;
+    if (!isHydrated || isBypassed) return;
 
     if (!isAuthenticated && !inAuthGroup) {
-      // Redirect to login if unauthenticated and accessing protected routes
       router.replace('/auth/login');
     } else if (isAuthenticated && inAuthGroup) {
-      // Redirect to home if already authenticated and accessing auth routes
       router.replace('/home');
     }
-  }, [isAuthenticated, isHydrated, segments]);
+  }, [isHydrated, isAuthenticated, currentSegment]);
 
   return (
     <View style={styles.container}>

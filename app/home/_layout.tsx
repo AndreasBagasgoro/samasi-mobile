@@ -7,8 +7,9 @@ export default function HomeLayout() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        <Stack screenOptions={{ headerShown: false }}>
+        <Stack screenOptions={{ headerShown: false, animation: 'fade', animationDuration: 50 }}>
           <Stack.Screen name="index" />
+          <Stack.Screen name="customers" />
         </Stack>
       </View>
       <NavigationBar />

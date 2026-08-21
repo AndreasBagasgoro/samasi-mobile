@@ -9,16 +9,12 @@ export default function Index() {
   if (!isHydrated) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#3d81c5" />
       </View>
     );
   }
 
-  if (isAuthenticated) {
-    return <Redirect href="/home" />;
-  }
-
-  return <Redirect href="/home" />;
+  return <Redirect href={isAuthenticated ? '/home' : '/auth/login'} />;
 }
 
 const styles = StyleSheet.create({
@@ -26,5 +22,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
   },
 });
+
