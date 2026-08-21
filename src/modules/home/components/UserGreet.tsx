@@ -8,22 +8,24 @@ interface UserGreetProps {
     name?: string;
 }
 
-const user = useAuthStore((state) => state.user);
-const today = new Date().toLocaleDateString('en-GB', {
+export const UserGreet: React.FC<UserGreetProps> = ({ 
+  greet = 'Hello',
+  name,
+}) => {
+  const user = useAuthStore((state) => state.user);
+  const today = new Date().toLocaleDateString('en-GB', {
     weekday: 'long',
     day: 'numeric',
     month: 'short',
-    year: 'numeric'
-})
+    year: 'numeric',
+  });
 
-export const UserGreet: React.FC<UserGreetProps> = ({ 
-  greet = 'Hello',
-  name = 'user',
-}) => {
+  const displayName = name || user?.name || user?.full_name || 'user';
+
   return (
     <View style={styles.container}>
         <Text style={styles.date}>{today}</Text>
-        <Text style={styles.greet}>{greet}, {name}</Text>
+        <Text style={styles.greet}>{greet}, {displayName}</Text>
     </View>
   );
 };
