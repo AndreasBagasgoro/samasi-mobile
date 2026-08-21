@@ -4,7 +4,6 @@ export * from './LoadingOverlay';
 export * from './MainCard';
 export * from './NavigationBar';
 export * from './ContactCard';
-export * from '../../modules/customers/components/CustomerForm';
 export * from './FormHeader';
 export * from './Pagination';
 export * from './FloatingButton';
