@@ -91,7 +91,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
           <TouchableOpacity
             key={item.id}
             style={styles.button}
-            onPress={() => router.push(item.route as any)}
+            onPress={() => router.replace(item.route as any)}
             activeOpacity={0.7}
           >
             <View style={styles.iconWrapper}>{item.icon(isActive)}</View>
