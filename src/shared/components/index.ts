@@ -9,4 +9,5 @@ export * from './Pagination';
 export * from './FloatingButton';
 export * from './Dropdown';
 export * from './TextArea';
+export * from './Filter';
 export { default as Header } from './Header';

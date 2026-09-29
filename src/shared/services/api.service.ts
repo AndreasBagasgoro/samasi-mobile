@@ -7,6 +7,13 @@ export const HR_API_URL = process.env.EXPO_PUBLIC_HR_API_URL || 'http://localhos
 export const MOBILE_API_URL = process.env.EXPO_PUBLIC_MOBILE_API_URL || 'http://localhost:3040/api/v1/mobile';
 export const DEFAULT_BASE_URL = process.env.EXPO_PUBLIC_API_URL || AUTH_API_URL;
 
+type UnauthorizedHandler = () => void;
+let onUnauthorizedHandler: UnauthorizedHandler | null = null;
+
+export const setOnUnauthorizedHandler = (handler: UnauthorizedHandler) => {
+  onUnauthorizedHandler = handler;
+};
+
 export class ApiService {
   private baseURL: string;
 
@@ -32,11 +39,23 @@ export class ApiService {
     return headers;
   }
 
-  private async handleResponse<T>(response: Response): Promise<T> {
+  private async handleResponse<T>(response: Response, endpoint: string): Promise<T> {
     const data = await response.json().catch(() => null);
 
     if (!response.ok) {
-      console.error(`[API Error ${response.status}] ${response.url}:`, data);
+      console.error(`[API Error ${response.status}] ${endpoint}:`, data);
+
+      const isAuthEndpoint = 
+        endpoint.includes('/auth/login') || 
+        endpoint.includes('/auth/register') || 
+        endpoint.includes('/auth/logout');
+
+      if ((response.status === 401 || response.status === 403) && !isAuthEndpoint) {
+        if (onUnauthorizedHandler) {
+          onUnauthorizedHandler();
+        }
+      }
+
       const error: ApiError = {
         message: data?.message || `HTTP ${response.status}: Gagal memuat data dari server`,
         statusCode: response.status,
@@ -65,9 +84,9 @@ export class ApiService {
         body: body ? JSON.stringify(body) : undefined,
       });
 
-      return await this.handleResponse<ApiResponse<T>>(response);
+      return await this.handleResponse<ApiResponse<T>>(response, endpoint);
     } catch (error: any) {
-      if (error.statusCode) {
+      if (error.statusCode !== undefined) {
         throw error;
       }
       const networkError: ApiError = {

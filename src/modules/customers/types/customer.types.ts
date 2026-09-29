@@ -8,27 +8,27 @@ export interface FilterItem {
     onPress?: () => void;
 }
 
-export interface CustomerItem {
-    id?: string;
-    profileInitial: string;
-    name: string;
-    customerType: string;
-    totalContacts: number;
-    lastActive: string;
-    avatarBackgroundColor?: string;
-    avatarTextColor?: string;
-    status?: 'active' | 'inactive' | string;
-    npwp?: string;
-    email?: string;
-    address?: string;
-    billingAddress?: string;
-    city?: string;
-    paymentTermDays?: number;
-    approvalStatus?: string;
-    documentCategory?: string;
-    createdBy?: string;
-    onPress?: () => void;
-}
+    export interface CustomerItem {
+        id?: string;
+        profileInitial: string;
+        name: string;
+        customerType: string;
+        totalContacts: number;
+        lastActive: string;
+        avatarBackgroundColor?: string;
+        avatarTextColor?: string;
+        status?: 'active' | 'inactive' | string;
+        npwp?: string;
+        email?: string;
+        address?: string;
+        billingAddress?: string;
+        city?: string;
+        paymentTermDays?: number;
+        approvalStatus?: string;
+        documentCategory?: string;
+        createdBy?: string;
+        onPress?: () => void;
+    }
 
 export interface DealItem {
     id?: string;
@@ -62,7 +62,7 @@ export interface CustomerDetailItem extends CustomerSummaryItem {
   is_approved_for_transaction: boolean;
   created_by_name?: string | null;
   updated_by_name?: string | null;
-  customerContact?: Array<{
+  customer_contacts?: Array<{
     contactId: string | number;
     contactName: string;
     email?: string;
@@ -71,7 +71,6 @@ export interface CustomerDetailItem extends CustomerSummaryItem {
 }
 
 export type ContactStatus = 'ACTIVE' | 'INACTIVE';
-/** Interface tepat sesuai JSON response dari GET /api/customers/:id/contacts */
 
 export interface CustomerContactSummaryItem {
   customer_contact_id: string | number;
