@@ -83,6 +83,30 @@ export const useDiary = (options: UseDiaryOptions = {}) => {
 
       const entryId = item.sales_diary_entry_id ?? raw.id ?? raw.diary_id;
 
+      const contactJobTitle =
+        contact?.job_title ||
+        contact?.jobTitle ||
+        undefined;
+
+      const employeePosition =
+        item.employee?.position_name ||
+        (item.employee as any)?.positionName ||
+        (item.employee as any)?.position ||
+        undefined;
+
+      const employeeDivision =
+        item.employee?.division_name ||
+        (item.employee as any)?.divisionName ||
+        item.employee?.office_name ||
+        (item.employee as any)?.officeName ||
+        undefined;
+
+      const locationName =
+        raw.location_name ||
+        customer?.city ||
+        customer?.address ||
+        undefined;
+
       return {
         id: entryId,
         title: item.title || customerName || 'Sales Interaction',
@@ -96,8 +120,12 @@ export const useDiary = (options: UseDiaryOptions = {}) => {
         customerName: customerName || undefined,
         customerContactId: item.customer_contact_id || raw.mst_customer_contact_id,
         contactName,
+        contactJobTitle,
         employeeId: item.employee_id,
         employeeName: item.employee?.full_name,
+        employeePosition,
+        employeeDivision,
+        locationName,
         latitude: item.latitude,
         longitude: item.longitude,
         photos: item.photos,

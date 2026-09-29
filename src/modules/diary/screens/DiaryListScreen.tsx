@@ -76,7 +76,7 @@ export const DiaryScreen: React.FC = () => {
     refreshDiaries,
   } = useDiary();
 
-  const handleCustomerPress = useCallback(
+  const handleDiaryPress = useCallback(
     (id?: string, e?: any) => {
       if (Platform.OS === 'web') {
         e?.currentTarget?.blur?.();
@@ -176,7 +176,7 @@ export const DiaryScreen: React.FC = () => {
                       <DiaryCard
                         key={cardKey}
                         {...item}
-                        onPress={() => handleCustomerPress(item.id?.toString())}
+                        onPress={() => handleDiaryPress(item.id?.toString())}
                       />
                     );
                   })}

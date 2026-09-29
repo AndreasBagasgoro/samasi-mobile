@@ -18,8 +18,12 @@ export interface DiaryItem {
   customerId?: string | number;
   contactName?: string;
   customerContactId?: string | number;
+  contactJobTitle?: string;
   employeeName?: string;
+  employeePosition?: string;
+  employeeDivision?: string;
   employeeId?: string | number;
+  locationName?: string;
   notes?: string | null;
   latitude?: CoordinateValue;
   longitude?: CoordinateValue;
@@ -103,8 +107,11 @@ export interface DiaryEmployee {
   password_hash?: string;
   role_id?: string | number | null;
   division_id?: string | number | null;
+  division_name?: string | null;
   position_id?: string | number | null;
+  position_name?: string | null;
   office_id?: string | number | null;
+  office_name?: string | null;
   direct_supervisor_id?: string | number | null;
   join_date?: string | null;
   photo_object_key?: string | null;
