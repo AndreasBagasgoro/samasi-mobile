@@ -17,7 +17,8 @@ if (typeof window !== 'undefined') {
       typeof args[0] === 'string' &&
       (args[0].includes('props.pointerEvents is deprecated') ||
        args[0].includes('style.resizeMode is deprecated') ||
-       args[0].includes('Too many screens defined'))
+       args[0].includes('Too many screens defined') ||
+       args[0].includes('Response.blob() is using React Native'))
     ) {
       return;
     }
@@ -29,6 +30,7 @@ LogBox.ignoreLogs([
   'props.pointerEvents is deprecated',
   'style.resizeMode is deprecated',
   'Too many screens defined',
+  'Response.blob() is using React Native',
 ]);
 
 export default function RootLayout() {

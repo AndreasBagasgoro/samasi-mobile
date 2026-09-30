@@ -209,13 +209,13 @@ export const useDiary = (options: UseDiaryOptions = {}) => {
 
   const getDiaryById = useCallback(
     (id: string | number | undefined): DiaryItem => {
-      const foundInList = formattedDiaries.find((item) => String(item.id) === String(id));
-
-      if (selectedDiary && String(selectedDiary.sales_diary_entry_id) === String(id)) {
-        const [formatted] = formatDiaryData([selectedDiary]);
-        return formatted;
-      }
-
+        
+        if (selectedDiary && String(selectedDiary.sales_diary_entry_id) === String(id)) {
+            const [formatted] = formatDiaryData([selectedDiary]);
+            return formatted;
+        }
+        const foundInList = formattedDiaries.find((item) => String(item.id) === String(id));
+        
       return (
         foundInList || {
           id: id || 'unknown',

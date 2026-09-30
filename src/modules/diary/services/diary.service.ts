@@ -1,4 +1,3 @@
-import { Platform } from "react-native";
 import { mobileApiService } from "@shared/services";
 import {
     DiaryEntryItem,
@@ -120,12 +119,6 @@ export const diaryService = {
                     blob = await res.blob();
                 }
 
-                // JANGAN gunakan new File()!
-                // Pada Hermes / JS runtime, File.prototype.name hanya memiliki getter tanpa setter.
-                // Patch FormData Expo (normalizeArgs) mencoba meng-assign `value.name = blobFilename`,
-                // yang menyebabkan: TypeError: Cannot assign to property 'name' which has only a getter.
-                // Dengan mendefinisikan 'name' sebagai writable own property pada Blob,
-                // Expo FormData patch akan berhasil tanpa melempar error.
                 try {
                     Object.defineProperty(blob, 'name', {
                         value: fileName,
@@ -134,10 +127,9 @@ export const diaryService = {
                         enumerable: true,
                     });
                 } catch {
-                    // Abaikan jika tidak dapat di-define
                 }
 
-                if (!blob.type && mimeType) {
+                if (!blob.type || blob.type === 'application/octet-stream') {
                     try {
                         Object.defineProperty(blob, 'type', {
                             value: mimeType,
@@ -146,11 +138,9 @@ export const diaryService = {
                             enumerable: true,
                         });
                     } catch {
-                        // Abaikan jika tidak dapat di-define
                     }
                 }
 
-                // Kirim Blob langsung ke FormData
                 formData.append('photos', blob, fileName);
             } catch (fetchErr) {
                 console.error('[uploadDiaryPhotos] Gagal menyiapkan photo blob:', fetchErr);
