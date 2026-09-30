@@ -5,3 +5,5 @@ export * from './DiaryDetailHeader';
 export * from './DiaryOverviewCard';
 export * from './DiaryLocationCard';
 export * from './DiaryPhotoSection';
+export * from './DiaryForm';
+export * from './DiarySaveResult';

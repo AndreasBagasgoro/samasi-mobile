@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import { mobileApiService } from "@shared/services";
 import {
     DiaryEntryItem,
@@ -79,5 +80,88 @@ export const diaryService = {
                 total_pages: raw.meta?.total_pages ?? 1,
             },
         };
+    },
+
+    async uploadDiaryPhotos(
+        id: string | number,
+        photos: (string | { uri: string; name?: string; type?: string })[],
+        metadata?: { caption?: string; latitude?: number; longitude?: number }
+    ): Promise<any> {
+        const formData = new FormData();
+
+        for (let i = 0; i < photos.length; i++) {
+            const item = photos[i];
+            const uri = typeof item === 'string' ? item : item.uri;
+            const fileName = (typeof item === 'object' && item.name) ? item.name : `selfie_${Date.now()}_${i}.jpg`;
+            const mimeType = (typeof item === 'object' && item.type) ? item.type : 'image/jpeg';
+
+            try {
+                let blob: Blob;
+
+                if (uri.startsWith('data:')) {
+                    try {
+                        const res = await fetch(uri);
+                        blob = await res.blob();
+                    } catch {
+                        // Fallback jika fetch data-uri gagal
+                        const splitIndex = uri.indexOf(',');
+                        const header = uri.substring(0, splitIndex);
+                        const base64Data = uri.substring(splitIndex + 1);
+                        const mime = header.match(/:(.*?);/)?.[1] || mimeType;
+                        const byteCharacters = atob(base64Data);
+                        const byteNumbers = new Uint8Array(byteCharacters.length);
+                        for (let b = 0; b < byteCharacters.length; b++) {
+                            byteNumbers[b] = byteCharacters.charCodeAt(b);
+                        }
+                        blob = new Blob([byteNumbers], { type: mime });
+                    }
+                } else {
+                    const res = await fetch(uri);
+                    blob = await res.blob();
+                }
+
+                // JANGAN gunakan new File()!
+                // Pada Hermes / JS runtime, File.prototype.name hanya memiliki getter tanpa setter.
+                // Patch FormData Expo (normalizeArgs) mencoba meng-assign `value.name = blobFilename`,
+                // yang menyebabkan: TypeError: Cannot assign to property 'name' which has only a getter.
+                // Dengan mendefinisikan 'name' sebagai writable own property pada Blob,
+                // Expo FormData patch akan berhasil tanpa melempar error.
+                try {
+                    Object.defineProperty(blob, 'name', {
+                        value: fileName,
+                        writable: true,
+                        configurable: true,
+                        enumerable: true,
+                    });
+                } catch {
+                    // Abaikan jika tidak dapat di-define
+                }
+
+                if (!blob.type && mimeType) {
+                    try {
+                        Object.defineProperty(blob, 'type', {
+                            value: mimeType,
+                            writable: true,
+                            configurable: true,
+                            enumerable: true,
+                        });
+                    } catch {
+                        // Abaikan jika tidak dapat di-define
+                    }
+                }
+
+                // Kirim Blob langsung ke FormData
+                formData.append('photos', blob, fileName);
+            } catch (fetchErr) {
+                console.error('[uploadDiaryPhotos] Gagal menyiapkan photo blob:', fetchErr);
+                throw fetchErr;
+            }
+        }
+
+        if (metadata?.caption) formData.append('caption', metadata.caption);
+        if (metadata?.latitude) formData.append('latitude', String(metadata.latitude));
+        if (metadata?.longitude) formData.append('longitude', String(metadata.longitude));
+
+        return mobileApiService.postMultipart(`/diary/${id}/photos/upload`, formData);
     },
 };

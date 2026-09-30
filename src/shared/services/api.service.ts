@@ -116,6 +116,37 @@ export class ApiService {
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
     return this.request<T>('DELETE', endpoint);
   }
+
+  async postMultipart<T>(endpoint: string, formData: FormData): Promise<ApiResponse<T>> {
+    const url = `${this.baseURL}${endpoint}`;
+    const token = await storageService.getToken();
+    const headers: Record<string, string> = {
+      Accept: 'application/json',
+    };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      return await this.handleResponse<ApiResponse<T>>(response, endpoint);
+    } catch (error: any) {
+      if (error.statusCode !== undefined) {
+        throw error;
+      }
+      console.error('[postMultipart Fetch Error]', error);
+      const networkError: ApiError = {
+        message: error?.message ? `Gagal mengunggah file ke server: ${error.message}` : `Gagal mengunggah file ke server.`,
+        statusCode: 0,
+      };
+      throw networkError;
+    }
+  }
 }
 
 export const createApiService = (baseURL: string) => new ApiService(baseURL);
