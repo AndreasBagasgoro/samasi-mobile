@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { storageService } from '@shared/services';
+import { storageService, setOnUnauthorizedHandler } from '@shared/services';
 import { authService } from '../services';
 import { AuthState, LoginRequest, RegisterRequest } from '../types';
 import { TOKEN_KEY, REFRESH_TOKEN_KEY, AUTH_STORAGE_KEY } from '../constants';
@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const response = await authService.login(data);
       const token = response.access_token || response.token;
-      
+
       if (token) {
         await storageService.setItem(TOKEN_KEY, token);
       }
@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       if (response.user) {
         await storageService.setItem(AUTH_STORAGE_KEY, JSON.stringify(response.user));
       }
-      
+
       set({
         user: response.user,
         token: token,
@@ -57,7 +57,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const response = await authService.register(data);
       const token = response.access_token || response.token;
-      
+
       if (token) {
         await storageService.setItem(TOKEN_KEY, token);
       }
@@ -86,12 +86,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   logout: async () => {
     set({ isLoading: true });
     try {
-      await authService.logout().catch(() => {});
+      await authService.logout().catch(() => { });
     } finally {
       await storageService.removeItem(TOKEN_KEY);
       await storageService.removeItem(REFRESH_TOKEN_KEY);
       await storageService.removeItem(AUTH_STORAGE_KEY);
-      
+
       set({
         user: null,
         token: null,
@@ -106,16 +106,30 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       const token = await storageService.getItem(TOKEN_KEY);
       const userStr = await storageService.getItem(AUTH_STORAGE_KEY);
-      
+
       if (token && userStr) {
-        set({
-          token,
-          user: JSON.parse(userStr),
-          isAuthenticated: true,
-        });
+        let parsedUser = null;
+        try {
+          parsedUser = JSON.parse(userStr);
+        } catch (e) { }
+
+        set({ token, user: parsedUser });
+
+        try {
+          const freshUser = await authService.getProfile();
+          set({
+            user: freshUser || parsedUser,
+            isAuthenticated: true,
+          });
+        } catch (error: any) {
+          console.warn('[AuthStore] Session validation on hydrate failed:', error);
+          await get().logout();
+        }
+      } else {
+        set({ isAuthenticated: false });
       }
     } catch (error) {
-      // Ignore hydration errors
+      await get().logout();
     } finally {
       set({ isHydrated: true });
     }
@@ -124,3 +138,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   setError: (error: string | null) => set({ error }),
   clearError: () => set({ error: null }),
 }));
+
+// Register handler untuk HTTP 401 Unauthorized dari ApiService
+setOnUnauthorizedHandler(() => {
+  const state = useAuthStore.getState();
+  if (state.isAuthenticated) {
+    state.logout();
+  }
+});
+

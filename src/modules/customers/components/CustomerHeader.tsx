@@ -1,11 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Colors, Layout } from '@shared/constants';
 import { Input } from '@shared/components';
 import { Filter } from './Filter';
-import { useCustomerTypes } from '../hooks/useCustomerTypes';
-import { FilterItem } from '../types';
 
 interface CustomerHeaderProps {
     searchValue?: string;
@@ -22,37 +20,6 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
     selectedFilterId,
     onFilterChange,
 }) => {
-    const [internalFilterId, setInternalFilterId] = useState('all');
-    const { formattedCustomerTypes } = useCustomerTypes();
-
-    const activeFilterId = selectedFilterId !== undefined ? selectedFilterId : internalFilterId;
-
-    const dynamicFilterItems = useMemo<FilterItem[]>(() => {
-        const allItem: FilterItem = {
-            id: 'all',
-            label: 'All',
-            value: 'all',
-            selected: activeFilterId === 'all',
-        };
-
-        const typeItems: FilterItem[] = formattedCustomerTypes.map((type) => {
-            const id = String(type.customer_type_id);
-            return {
-                id,
-                label: type.customer_type_name,
-                value: id,
-                selected: activeFilterId === id,
-            };
-        });
-
-        return [allItem, ...typeItems];
-    }, [formattedCustomerTypes, activeFilterId]);
-
-    const handleFilterPress = (filterId: string) => {
-        setInternalFilterId(filterId);
-        onFilterChange?.(filterId);
-    };
-
     return (
         <View style={styles.container}>
             <View style={styles.head}>
@@ -75,26 +42,10 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
                     inputContainerStyle={styles.searchBarContainerStyle}
                 />
             </View>
-            <ScrollView 
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filterContent}
-                style={styles.filterScrollView}
-            >
-                {dynamicFilterItems.map((item) => {
-                    const itemId = item.id ?? item.value;
-                    const isSelected = activeFilterId === itemId;
-                    return (
-                        <Filter
-                            key={itemId}
-                            label={item.label}
-                            value={item.value}
-                            selected={isSelected}
-                            onPress={() => handleFilterPress(itemId)}
-                        />
-                    );
-                })}
-            </ScrollView>
+            <Filter
+                selectedFilterId={selectedFilterId}
+                onFilterChange={onFilterChange}
+            />
         </View>
     );
 };
@@ -106,7 +57,6 @@ const styles = StyleSheet.create({
         paddingTop: 28,
         paddingBottom: 20,
         gap: 16,
-        flex: 1,
         borderBottomWidth: 2,
         borderBottomColor: Colors.border,
     },
@@ -143,11 +93,4 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 12,
     },
-    filterScrollView: {
-        flexGrow: 0,
-    },
-    filterContent: {
-        flexDirection: 'row',
-        gap: 8,
-    },
-});
+});

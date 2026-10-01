@@ -7,7 +7,7 @@ import { CustomerHeader, CustomerCard } from '../components';
 import { Colors, Layout } from '@shared/constants';
 import { Pagination, FloatingButton } from '@shared/components';
 import { useCustomers } from '../hooks';
-import { CustomerNotFound } from '@modules/customers/screens';
+import { CustomerNotFound } from './CustomerNotFound';
 import { Platform } from 'react-native';
 
 

@@ -197,7 +197,7 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
         profileInitial: selectedCustomer.short_name || (selectedCustomer.customer_name ? selectedCustomer.customer_name.slice(0, 2).toUpperCase() : 'CU'),
         name: selectedCustomer.customer_name || 'Customer Detail',
         customerType: selectedCustomer.customer_type_name || foundInList?.customerType || 'General',
-        totalContacts: selectedCustomer.customerContact?.length || foundInList?.totalContacts || 1,
+        totalContacts: selectedCustomer.customer_contacts?.length || foundInList?.totalContacts || 1,
         lastActive: foundInList?.lastActive || 'Active recently',
         status: (selectedCustomer.status === 'ACTIVE' ? 'active' : 'inactive'),
         npwp: selectedCustomer.npwp || '-',
