@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Text,
   View,
@@ -10,7 +10,9 @@ import {
   ActivityIndicator,
   Modal,
   Platform,
+  ImageSourcePropType,
 } from 'react-native';
+import { captureRef } from 'react-native-view-shot';
 import { Colors, Layout } from '@shared/constants';
 import { Dropdown } from '@shared/components';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -42,6 +44,15 @@ export interface DiaryFormProps {
   setErrors?: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onSubmit?: () => void;
   isSaving?: boolean;
+}
+
+interface NativeWatermarkRequest {
+  uri: string;
+  latitude: number;
+  longitude: number;
+  locationName?: string;
+  capturedAt?: Date;
+  companyTag?: string;
 }
 
 interface InteractionChip {
@@ -79,6 +90,55 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [previewPhotoUri, setPreviewPhotoUri] = useState<string | null>(null);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+  const watermarkViewRef = useRef<View>(null);
+  const watermarkResolverRef = useRef<{
+    resolve: (uri: string) => void;
+    reject: (error: unknown) => void;
+  } | null>(null);
+  const [nativeWatermarkRequest, setNativeWatermarkRequest] =
+    useState<NativeWatermarkRequest | null>(null);
+  const [watermarkImageSize, setWatermarkImageSize] = useState({
+    width: 800,
+    height: 600,
+  });
+  const [watermarkImageReady, setWatermarkImageReady] = useState(false);
+
+  const captureNativeWatermark = (options: NativeWatermarkRequest): Promise<string> => {
+    if (Platform.OS === 'web') {
+      return Promise.resolve(options.uri);
+    }
+
+    return new Promise((resolve, reject) => {
+      watermarkResolverRef.current = { resolve, reject };
+      setWatermarkImageReady(false);
+      setNativeWatermarkRequest(options);
+    });
+  };
+
+  useEffect(() => {
+    if (!nativeWatermarkRequest || !watermarkImageReady || !watermarkViewRef.current) {
+      return;
+    }
+
+    const capture = async () => {
+      try {
+        const uri = await captureRef(watermarkViewRef, {
+          format: 'jpg',
+          quality: 0.92,
+          result: 'tmpfile',
+        });
+        watermarkResolverRef.current?.resolve(uri);
+      } catch (error) {
+        watermarkResolverRef.current?.reject(error);
+      } finally {
+        watermarkResolverRef.current = null;
+        setNativeWatermarkRequest(null);
+        setWatermarkImageReady(false);
+      }
+    };
+
+    capture();
+  }, [nativeWatermarkRequest, watermarkImageReady]);
 
   useEffect(() => {
     if (!formData.customer_id) {
@@ -190,7 +250,7 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
         latitude: formData.latitude,
         longitude: formData.longitude,
         locationName: formData.location_name,
-      });
+      }, captureNativeWatermark);
 
       if (result) {
         setFormData((prev) => ({
@@ -219,7 +279,7 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
         latitude: formData.latitude,
         longitude: formData.longitude,
         locationName: formData.location_name,
-      });
+      }, captureNativeWatermark);
 
       if (result) {
         setFormData((prev) => ({
@@ -284,6 +344,59 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
 
   return (
     <View style={styles.container}>
+      {nativeWatermarkRequest && Platform.OS !== 'web' ? (
+        <View
+          ref={watermarkViewRef}
+          collapsable={false}
+          style={{
+            position: 'absolute',
+            left: -10000,
+            top: 0,
+            width: watermarkImageSize.width,
+            height: watermarkImageSize.height,
+            backgroundColor: '#000000',
+          }}
+        >
+          <Image
+            source={{ uri: nativeWatermarkRequest.uri } as ImageSourcePropType}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+            onLoad={(event) => {
+              const { width, height } = event.nativeEvent.source;
+              if (width && height) {
+                setWatermarkImageSize({ width, height });
+              }
+              setWatermarkImageReady(true);
+            }}
+            onError={(event) => {
+              watermarkResolverRef.current?.reject(
+                new Error(`Gagal memuat foto untuk watermark: ${event.nativeEvent.error}`)
+              );
+              watermarkResolverRef.current = null;
+              setNativeWatermarkRequest(null);
+            }}
+          />
+          <View style={styles.nativeWatermarkCard}>
+            <Text style={styles.nativeWatermarkCompany}>
+              {(nativeWatermarkRequest.companyTag || 'PT SAMASI • SALES TRACKER').toUpperCase()}
+            </Text>
+            <Text style={styles.nativeWatermarkCoordinates}>
+              GPS {Math.abs(nativeWatermarkRequest.latitude).toFixed(6)}°{' '}
+              {nativeWatermarkRequest.latitude >= 0 ? 'N' : 'S'}, {Math.abs(nativeWatermarkRequest.longitude).toFixed(6)}°{' '}
+              {nativeWatermarkRequest.longitude >= 0 ? 'E' : 'W'}
+            </Text>
+            {!!nativeWatermarkRequest.locationName && (
+              <Text style={styles.nativeWatermarkLocation} numberOfLines={1}>
+                {nativeWatermarkRequest.locationName}
+              </Text>
+            )}
+            <Text style={styles.nativeWatermarkTime}>
+              {formatWatermarkDateTime(nativeWatermarkRequest.capturedAt || new Date())}
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
       <View style={styles.fieldSection}>
         <Text style={styles.fieldTitle}>TITLE</Text>
         <TextInput
@@ -1073,5 +1186,40 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     marginTop: 2,
+  },
+  nativeWatermarkCard: {
+    position: 'absolute',
+    left: 18,
+    right: 18,
+    bottom: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    backgroundColor: 'rgba(10, 22, 40, 0.90)',
+    borderRadius: 12,
+    borderLeftWidth: 6,
+    borderLeftColor: '#16A34A',
+  },
+  nativeWatermarkCompany: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#60A5FA',
+    marginBottom: 8,
+  },
+  nativeWatermarkCoordinates: {
+    fontSize: 21,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    marginBottom: 6,
+  },
+  nativeWatermarkLocation: {
+    fontSize: 17,
+    color: '#E2E8F0',
+    marginBottom: 6,
+  },
+  nativeWatermarkTime: {
+    fontSize: 16,
+    color: '#CBD5E1',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
 });

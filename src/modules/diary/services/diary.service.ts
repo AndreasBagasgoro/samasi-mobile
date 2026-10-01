@@ -9,8 +9,8 @@ import {
     DeleteDiaryResponse,
 } from "../types";
 import { Platform } from 'react-native';
-import * as FileSystem from 'expo-file-system/legacy';       // hanya untuk tulis data URI -> file
-import { File as ExpoFile } from 'expo-file-system';          // API baru (SDK 54+), turunan Blob
+import * as FileSystem from 'expo-file-system/legacy';       
+import { File as ExpoFile } from 'expo-file-system'; 
 
 type DiaryPhotoInput = string | { uri: string; name?: string; type?: string };
 

@@ -17,6 +17,7 @@ export interface WatermarkOptions {
   locationName?: string;
   capturedAt?: Date;
   companyTag?: string;
+  captureNativeView?: (options: WatermarkOptions) => Promise<string>;
 }
 
 export const getCurrentGPSLocation = async (fallback?: {
@@ -111,6 +112,7 @@ export const applyWatermarkToImage = async (
     locationName = '',
     capturedAt = new Date(),
     companyTag = 'PT SAMASI • SALES TRACKER',
+    captureNativeView,
   } = options;
 
   // Jika di lingkungan Web / Browser, gunakan HTML5 Canvas untuk watermarking permanen
@@ -228,7 +230,18 @@ export const applyWatermarkToImage = async (
     });
   }
 
-  // Fallback untuk platform tanpa HTML5 Canvas langsung (Native):
+  if (captureNativeView) {
+    return captureNativeView({
+      uri,
+      latitude,
+      longitude,
+      locationName,
+      capturedAt,
+      companyTag,
+    });
+  }
+
+  // Fallback jika caller native tidak menyediakan view capture.
   return uri;
 };
 
@@ -239,7 +252,7 @@ export const takeSelfieWithWatermark = async (fallbackCoords?: {
   latitude?: number;
   longitude?: number;
   locationName?: string;
-}): Promise<CapturedWatermarkPhoto | null> => {
+}, captureNativeView?: WatermarkOptions['captureNativeView']): Promise<CapturedWatermarkPhoto | null> => {
   // 1. Minta izin akses kamera
   const cameraPerm = await ImagePicker.requestCameraPermissionsAsync();
   if (!cameraPerm.granted) {
@@ -270,6 +283,7 @@ export const takeSelfieWithWatermark = async (fallbackCoords?: {
     longitude: gpsLocation.longitude,
     locationName: gpsLocation.locationName,
     capturedAt: captureTime,
+    captureNativeView,
   });
 
   return {
@@ -288,7 +302,7 @@ export const pickImageFromGalleryWithWatermark = async (fallbackCoords?: {
   latitude?: number;
   longitude?: number;
   locationName?: string;
-}): Promise<CapturedWatermarkPhoto | null> => {
+}, captureNativeView?: WatermarkOptions['captureNativeView']): Promise<CapturedWatermarkPhoto | null> => {
   const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!perm.granted) {
     throw new Error('Akses galeri foto diperlukan untuk memilih gambar.');
@@ -314,6 +328,7 @@ export const pickImageFromGalleryWithWatermark = async (fallbackCoords?: {
     longitude: gpsLocation.longitude,
     locationName: gpsLocation.locationName,
     capturedAt: captureTime,
+    captureNativeView,
   });
 
   return {
