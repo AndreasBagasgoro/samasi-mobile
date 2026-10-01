@@ -8,6 +8,11 @@ import {
     UpdateDiaryPayload,
     DeleteDiaryResponse,
 } from "../types";
+import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';       // hanya untuk tulis data URI -> file
+import { File as ExpoFile } from 'expo-file-system';          // API baru (SDK 54+), turunan Blob
+
+type DiaryPhotoInput = string | { uri: string; name?: string; type?: string };
 
 export const diaryService = {
     async createDiary(payload: CreateDiaryPayload): Promise<DiaryEntryItem> {
@@ -83,74 +88,46 @@ export const diaryService = {
 
     async uploadDiaryPhotos(
         id: string | number,
-        photos: (string | { uri: string; name?: string; type?: string })[],
+        photos: DiaryPhotoInput[],
         metadata?: { caption?: string; latitude?: number; longitude?: number }
     ): Promise<any> {
         const formData = new FormData();
 
         for (let i = 0; i < photos.length; i++) {
             const item = photos[i];
-            const uri = typeof item === 'string' ? item : item.uri;
-            const fileName = (typeof item === 'object' && item.name) ? item.name : `selfie_${Date.now()}_${i}.jpg`;
-            const mimeType = (typeof item === 'object' && item.type) ? item.type : 'image/jpeg';
+            let uri = typeof item === 'string' ? item : item.uri;
+            const fileName =
+                typeof item === 'object' && item.name ? item.name : `selfie_${Date.now()}_${i}.jpg`;
+            const mimeType =
+                typeof item === 'object' && item.type ? item.type : 'image/jpeg';
 
-            try {
-                let blob: Blob;
-
+            if (Platform.OS === 'web') {
+                // Web: Blob/File standar sudah benar
+                const blob = await (await fetch(uri)).blob();
+                formData.append('photos', new File([blob], fileName, { type: mimeType }));
+            } else {
+                // Native: data URI (base64) -> tulis ke file cache dulu
                 if (uri.startsWith('data:')) {
-                    try {
-                        const res = await fetch(uri);
-                        blob = await res.blob();
-                    } catch {
-                        // Fallback jika fetch data-uri gagal
-                        const splitIndex = uri.indexOf(',');
-                        const header = uri.substring(0, splitIndex);
-                        const base64Data = uri.substring(splitIndex + 1);
-                        const mime = header.match(/:(.*?);/)?.[1] || mimeType;
-                        const byteCharacters = atob(base64Data);
-                        const byteNumbers = new Uint8Array(byteCharacters.length);
-                        for (let b = 0; b < byteCharacters.length; b++) {
-                            byteNumbers[b] = byteCharacters.charCodeAt(b);
-                        }
-                        blob = new Blob([byteNumbers], { type: mime });
-                    }
-                } else {
-                    const res = await fetch(uri);
-                    blob = await res.blob();
-                }
-
-                try {
-                    Object.defineProperty(blob, 'name', {
-                        value: fileName,
-                        writable: true,
-                        configurable: true,
-                        enumerable: true,
+                    const base64Data = uri.substring(uri.indexOf(',') + 1);
+                    const path = `${FileSystem.cacheDirectory}${fileName}`;
+                    await FileSystem.writeAsStringAsync(path, base64Data, {
+                        encoding: FileSystem.EncodingType.Base64,
                     });
-                } catch {
+                    uri = path; // sudah berawalan file://
+                } else if (!uri.startsWith('file://') && !uri.startsWith('content://')) {
+                    uri = `file://${uri}`;
                 }
 
-                if (!blob.type || blob.type === 'application/octet-stream') {
-                    try {
-                        Object.defineProperty(blob, 'type', {
-                            value: mimeType,
-                            writable: true,
-                            configurable: true,
-                            enumerable: true,
-                        });
-                    } catch {
-                    }
-                }
-
-                formData.append('photos', blob, fileName);
-            } catch (fetchErr) {
-                console.error('[uploadDiaryPhotos] Gagal menyiapkan photo blob:', fetchErr);
-                throw fetchErr;
+                // ExpoFile adalah turunan Blob yang membaca byte langsung dari native,
+                // sehingga diterima oleh expo/fetch dan isinya tidak korup.
+                const file = new ExpoFile(uri);
+                formData.append('photos', file as any, fileName);
             }
         }
 
         if (metadata?.caption) formData.append('caption', metadata.caption);
-        if (metadata?.latitude) formData.append('latitude', String(metadata.latitude));
-        if (metadata?.longitude) formData.append('longitude', String(metadata.longitude));
+        if (metadata?.latitude !== undefined) formData.append('latitude', String(metadata.latitude));
+        if (metadata?.longitude !== undefined) formData.append('longitude', String(metadata.longitude));
 
         return mobileApiService.postMultipart(`/diary/${id}/photos/upload`, formData);
     },
