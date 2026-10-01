@@ -48,13 +48,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 999,
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
+    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.25)',
     elevation: 6,
   },
 });

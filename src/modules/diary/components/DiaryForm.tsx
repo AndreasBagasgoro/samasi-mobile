@@ -690,36 +690,6 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
                 style={styles.previewFullImage}
                 resizeMode="contain"
               />
-
-              {/* Watermark Card Overlay di Preview */}
-              <View style={styles.previewWatermarkOverlay}>
-                <View style={styles.previewWatermarkAccentBar} />
-                <View style={styles.previewWatermarkContent}>
-                  <View style={styles.previewWatermarkHeaderRow}>
-                    <Text style={styles.previewWatermarkTag}>PT SAMASI • SALES TRACKER</Text>
-                    <View style={styles.previewWatermarkGpsBadge}>
-                      <Feather name="check-circle" size={10} color="#16A34A" />
-                      <Text style={styles.previewWatermarkGpsText}>GPS VERIFIED</Text>
-                    </View>
-                  </View>
-
-                  <Text style={styles.previewWatermarkCoord}>
-                    📍 {formData.latitude && formData.longitude
-                      ? `${Math.abs(formData.latitude).toFixed(6)}° ${formData.latitude >= 0 ? 'N' : 'S'}, ${Math.abs(formData.longitude).toFixed(6)}° ${formData.longitude >= 0 ? 'E' : 'W'}`
-                      : 'Koordinat GPS terekam'}
-                  </Text>
-
-                  {formData.location_name ? (
-                    <Text style={styles.previewWatermarkLoc} numberOfLines={1}>
-                      🏢 {formData.location_name}
-                    </Text>
-                  ) : null}
-
-                  <Text style={styles.previewWatermarkTime}>
-                    🕒 {formatWatermarkDateTime(new Date())}
-                  </Text>
-                </View>
-              </View>
             </View>
           ) : null}
         </View>
@@ -843,10 +813,7 @@ const styles = StyleSheet.create({
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
+    boxShadow: '0px 1px 3px rgba(15, 23, 42, 0.04)',
     elevation: 1,
   },
   locationIconBox: {
@@ -1115,78 +1082,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  previewWatermarkOverlay: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
-    backgroundColor: 'rgba(10, 22, 40, 0.90)',
-    borderRadius: 12,
-    flexDirection: 'row',
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-  },
-  previewWatermarkAccentBar: {
-    width: 6,
-    backgroundColor: '#16A34A',
-  },
-  previewWatermarkContent: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  previewWatermarkHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  previewWatermarkTag: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#60A5FA',
-    letterSpacing: 0.5,
-  },
-  previewWatermarkGpsBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(22, 163, 74, 0.25)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  previewWatermarkGpsText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: '#4ADE80',
-    letterSpacing: 0.5,
-  },
-  previewWatermarkCoord: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    marginBottom: 2,
-  },
-  previewWatermarkLoc: {
-    fontSize: 11,
-    color: '#E2E8F0',
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  previewWatermarkTime: {
-    fontSize: 10.5,
-    color: '#94A3B8',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    marginTop: 2,
-  },
   nativeWatermarkCard: {
     position: 'absolute',
     left: 18,
@@ -1197,7 +1092,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(10, 22, 40, 0.90)',
     borderRadius: 12,
     borderLeftWidth: 6,
-    borderLeftColor: '#16A34A',
+    borderLeftColor: '#1666a3',
   },
   nativeWatermarkCompany: {
     fontSize: 18,

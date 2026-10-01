@@ -99,9 +99,7 @@ export const formatWatermarkDateTime = (date: Date): string => {
   return `${day} ${month} ${year}, ${hours}:${minutes}:${seconds} WIB`;
 };
 
-/**
- * Membakar (burn-in) teks koordinat dan timestamp langsung ke gambar menggunakan HTML5 Canvas di Web / Data URL
- */
+
 export const applyWatermarkToImage = async (
   options: WatermarkOptions
 ): Promise<string> => {
@@ -115,12 +113,10 @@ export const applyWatermarkToImage = async (
     captureNativeView,
   } = options;
 
-  // Jika di lingkungan Web / Browser, gunakan HTML5 Canvas untuk watermarking permanen
   if (Platform.OS === 'web' && typeof document !== 'undefined') {
     return new Promise((resolve) => {
       const img = new Image();
-      
-      // JANGAN set crossOrigin untuk blob: atau data: URL karena menyebabkan CORS security error di browser
+ 
       if (uri.startsWith('http://') || uri.startsWith('https://')) {
         img.crossOrigin = 'anonymous';
       }
@@ -141,21 +137,18 @@ export const applyWatermarkToImage = async (
             return;
           }
 
-          // 1. Gambar foto utama
           ctx.drawImage(img, 0, 0, width, height);
 
-          // 2. Skala ukuran font & layout dinamis mengikuti resolusi gambar
           const baseDim = Math.min(width, height);
           const scale = Math.max(1, baseDim / 650);
 
           const padding = Math.round(14 * scale);
-          const cardHeight = Math.round(115 * scale);
+          const cardHeight = Math.round(180 * scale);
           const cardWidth = width - padding * 2;
           const cardX = padding;
           const cardY = height - cardHeight - padding;
           const borderRadius = Math.round(12 * scale);
 
-          // 3. Gambar background card gelap semi-transparan
           ctx.save();
           ctx.fillStyle = 'rgba(10, 22, 40, 0.88)';
           ctx.beginPath();
@@ -166,23 +159,21 @@ export const applyWatermarkToImage = async (
           }
           ctx.fill();
 
-          // 4. Accent garis samping hijau (Verified GPS)
           ctx.fillStyle = '#16A34A';
           ctx.fillRect(cardX, cardY, Math.round(6 * scale), cardHeight);
 
-          // 5. Teks informasi watermark
           const textStartX = cardX + Math.round(16 * scale);
-          let currentY = cardY + Math.round(24 * scale);
+          let currentY = cardY + Math.round(36 * scale);
 
           // Baris 1: Header / Tag Perusahaan + GPS Verified
-          const tagFontSize = Math.max(12, Math.round(13 * scale));
+          const tagFontSize = Math.max(20, Math.round(21 * scale));
           ctx.font = `bold ${tagFontSize}px sans-serif`;
           ctx.fillStyle = '#60A5FA'; // Biru muda
           ctx.fillText(companyTag.toUpperCase(), textStartX, currentY);
 
           // Baris 2: Titik Koordinat (Latitude, Longitude)
-          currentY += Math.round(24 * scale);
-          const coordFontSize = Math.max(13, Math.round(15 * scale));
+          currentY += Math.round(32 * scale);
+          const coordFontSize = Math.max(23, Math.round(25 * scale));
           ctx.font = `bold ${coordFontSize}px monospace, sans-serif`;
           ctx.fillStyle = '#FFFFFF';
           const latDir = latitude >= 0 ? 'N' : 'S';
@@ -192,8 +183,8 @@ export const applyWatermarkToImage = async (
 
           // Baris 3: Nama Lokasi (jika ada)
           if (locationName) {
-            currentY += Math.round(21 * scale);
-            const locFontSize = Math.max(11, Math.round(13 * scale));
+            currentY += Math.round(30 * scale);
+            const locFontSize = Math.max(18, Math.round(20 * scale));
             ctx.font = `500 ${locFontSize}px sans-serif`;
             ctx.fillStyle = '#E2E8F0';
             const displayLoc =
@@ -204,8 +195,8 @@ export const applyWatermarkToImage = async (
           }
 
           // Baris 4: Waktu Pengambilan (Timestamp)
-          currentY += Math.round(21 * scale);
-          const timeFontSize = Math.max(11, Math.round(12 * scale));
+          currentY += Math.round(30 * scale);
+          const timeFontSize = Math.max(18, Math.round(19 * scale));
           ctx.font = `500 ${timeFontSize}px monospace, sans-serif`;
           ctx.fillStyle = '#94A3B8';
           ctx.fillText(`🕒 ${formatWatermarkDateTime(capturedAt)}`, textStartX, currentY);
