@@ -10,6 +10,8 @@ export interface FormHeaderProps {
     onSave?: () => void;
     saveText?: string;
     isSaving?: boolean;
+    /** Nonaktifkan tombol save (mis. karena data form belum valid) */
+    saveDisabled?: boolean;
 }
 export const FormHeader: React.FC<FormHeaderProps> = ({
     title = 'Header Title',
@@ -17,7 +19,9 @@ export const FormHeader: React.FC<FormHeaderProps> = ({
     onSave,
     saveText = 'Save',
     isSaving = false,
+    saveDisabled = false,
 }) => {
+    const isSaveDisabled = isSaving || saveDisabled;
 
     const router = useRouter();
 
@@ -49,9 +53,9 @@ export const FormHeader: React.FC<FormHeaderProps> = ({
 
             {/* 3. Tombol Save */}
             <TouchableOpacity
-                style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+                style={[styles.saveButton, isSaveDisabled && styles.saveButtonDisabled]}
                 onPress={onSave}
-                disabled={isSaving}
+                disabled={isSaveDisabled}
                 activeOpacity={0.8}
             >
                 <Text style={styles.saveButtonText}>{saveText}</Text>

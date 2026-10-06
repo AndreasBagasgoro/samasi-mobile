@@ -23,6 +23,7 @@ import {
   pickImageFromGalleryWithWatermark,
   formatWatermarkDateTime,
   getWatermarkLocationStatus,
+  captureEntryLocation,
   CapturedWatermarkPhoto,
 } from '../utils';
 
@@ -44,11 +45,14 @@ export interface DiaryFormData {
   interaction_type: string;
   interaction_type_id?: string;
   notes: string;
+  /** Lokasi entri, di-capture manual (terpisah dari lokasi per foto) */
   latitude?: number;
   longitude?: number;
   location_name?: string;
   captured_at?: string;
   geocoded_at?: string;
+  accuracy?: number | null;
+  is_mocked?: boolean;
   photos: string[];
   /** Metadata lokasi per foto, key = URI foto di `photos` */
   photo_metadata?: Record<string, DiaryPhotoMetadata>;
@@ -73,6 +77,15 @@ interface NativeWatermarkRequest {
   accuracy?: number | null;
   isMocked?: boolean;
 }
+
+const formatCoordinate = (value: number, positive: string, negative: string) =>
+  `${Math.abs(value).toFixed(6)}° ${value >= 0 ? positive : negative}`;
+
+const ENTRY_LOCATION_STATUS = {
+  verified: { label: 'Terverifikasi', icon: 'check-circle', color: '#15803D', background: '#DCFCE7' },
+  mocked: { label: 'Fake GPS', icon: 'alert-octagon', color: '#B91C1C', background: '#FEE2E2' },
+  unverified: { label: 'Belum Terverifikasi', icon: 'alert-triangle', color: '#B45309', background: '#FEF3C7' },
+} as const;
 
 interface InteractionChip {
   id: string;
@@ -109,6 +122,7 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [previewPhotoUri, setPreviewPhotoUri] = useState<string | null>(null);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+  const [isCapturingLocation, setIsCapturingLocation] = useState(false);
   const watermarkViewRef = useRef<View>(null);
   const watermarkResolverRef = useRef<{
     resolve: (uri: string) => void;
@@ -133,7 +147,16 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
     ? getWatermarkLocationStatus(nativeWatermarkRequest.isMocked, nativeWatermarkRequest.accuracy)
     : null;
 
-  const captureNativeWatermark = (options: NativeWatermarkRequest): Promise<string> => {
+  const hasEntryLocation = formData.latitude != null && formData.longitude != null;
+  const entryLocationStatus = hasEntryLocation
+    ? getWatermarkLocationStatus(formData.is_mocked, formData.accuracy)
+    : null;
+  const entryLocationStyle = ENTRY_LOCATION_STATUS[entryLocationStatus?.status ?? 'unverified'];
+
+  const isPhotoMocked = (uri: string) => !!formData.photo_metadata?.[uri]?.is_mocked;
+  const hasMockedPhoto = formData.photos.some(isPhotoMocked);
+
+  const captureNativeWatermark =(options: NativeWatermarkRequest): Promise<string> => {
     if (Platform.OS === 'web') {
       return Promise.resolve(options.uri);
     }
@@ -305,23 +328,41 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
       ...prev,
       photos: [...prev.photos, result.uri],
       photo_metadata: { ...prev.photo_metadata, [result.uri]: metadata },
-      latitude: result.latitude,
-      longitude: result.longitude,
-      location_name: result.locationName,
-      captured_at: capturedAtIso,
-      geocoded_at: capturedAtIso,
     }));
+  };
+
+  const handleCaptureLocation = async () => {
+    setIsCapturingLocation(true);
+    try {
+      const result = await captureEntryLocation();
+      setFormData((prev) => ({
+        ...prev,
+        latitude: result.latitude,
+        longitude: result.longitude,
+        location_name: result.locationName,
+        accuracy: result.accuracy,
+        is_mocked: result.isMocked,
+        captured_at: result.capturedAt.toISOString(),
+        geocoded_at: result.geocodedAt.toISOString(),
+      }));
+      if (errors?.location) {
+        setErrors?.((prev) => ({ ...prev, location: '' }));
+      }
+    } catch (err: any) {
+      Alert.alert(
+        'Gagal Mengambil Lokasi',
+        err?.message || 'Pastikan GPS dan izin lokasi diaktifkan pada perangkat Anda.'
+      );
+    } finally {
+      setIsCapturingLocation(false);
+    }
   };
 
   const handleTakeSelfie = async () => {
     setShowPhotoOptions(false);
     setIsProcessingPhoto(true);
     try {
-      const result = await takeSelfieWithWatermark({
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-        locationName: formData.location_name,
-      }, captureNativeWatermark);
+      const result = await takeSelfieWithWatermark(undefined, captureNativeWatermark);
 
       if (result) {
         addCapturedPhoto(result, 'camera');
@@ -340,11 +381,7 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
     setShowPhotoOptions(false);
     setIsProcessingPhoto(true);
     try {
-      const result = await pickImageFromGalleryWithWatermark({
-        latitude: formData.latitude,
-        longitude: formData.longitude,
-        locationName: formData.location_name,
-      }, captureNativeWatermark);
+      const result = await pickImageFromGalleryWithWatermark(undefined, captureNativeWatermark);
 
       if (result) {
         addCapturedPhoto(result, 'gallery');
@@ -369,6 +406,9 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
         photo_metadata: restMetadata,
       };
     });
+    if (errors?.photos) {
+      setErrors?.((prev) => ({ ...prev, photos: '' }));
+    }
   };
 
   const renderChip = (chip: InteractionChip) => {
@@ -425,8 +465,6 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
             source={{ uri: nativeWatermarkRequest.uri } as ImageSourcePropType}
             style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
-            // Android default fade-in 300ms: tanpa ini foto ter-capture saat masih
-            // setengah transparan di atas latar hitam sehingga hasilnya gelap
             fadeDuration={0}
             onLoad={(event) => {
               const { width, height } = event.nativeEvent.source;
@@ -598,23 +636,140 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
         {errors?.notes ? <Text style={styles.errorText}>{errors.notes}</Text> : null}
       </View>
 
-      <View style={styles.locationCard}>
-        <View style={styles.locationIconBox}>
-          <Feather name="crosshair" size={18} color="#16A34A" />
-        </View>
-
-        <View style={styles.locationTextBox}>
-          <Text style={styles.locationTitle}>GPS Location Captured</Text>
-          <Text style={styles.locationSubtitle}>
-            {formData.latitude?.toFixed(4) || '1.3521'}° N,{' '}
-            {formData.longitude?.toFixed(4) || '103.8198'}° E ·{' '}
-            {formData.location_name || ''}
+      <View style={styles.fieldSection}>
+        <View style={styles.notesLabelRow}>
+          <Text style={styles.fieldTitle}>
+            LOCATION <Text style={styles.requiredAsterisk}>*</Text>
           </Text>
+          {hasEntryLocation && !isCapturingLocation ? (
+            <TouchableOpacity
+              style={styles.voiceButton}
+              onPress={handleCaptureLocation}
+              activeOpacity={0.7}
+            >
+              <Feather name="refresh-cw" size={12} color="#2563EB" />
+              <Text style={styles.voiceButtonText}>Perbarui</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
 
-        <View style={styles.verifiedBadge}>
-          <Text style={styles.verifiedText}>Verified</Text>
-        </View>
+        {isCapturingLocation ? (
+          <View style={[styles.locationEmptyCard, styles.locationEmptyCardActive]}>
+            <View style={styles.locationPulseOuter}>
+              <View style={styles.locationPulseInner}>
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              </View>
+            </View>
+            <Text style={styles.locationEmptyTitle}>Mencari sinyal GPS...</Text>
+            <Text style={styles.locationEmptySubtitle}>
+              Tetap di lokasi dan pastikan GPS aktif agar akurasi maksimal
+            </Text>
+          </View>
+        ) : hasEntryLocation && entryLocationStatus ? (
+          <View
+            style={[
+              styles.locationCard,
+              entryLocationStatus.status === 'mocked' && styles.locationCardDanger,
+            ]}
+          >
+            <View style={styles.locationHeaderRow}>
+              <View
+                style={[
+                  styles.locationIconBox,
+                  { backgroundColor: entryLocationStyle.background },
+                ]}
+              >
+                <Feather name="map-pin" size={18} color={entryLocationStyle.color} />
+              </View>
+              <View style={styles.locationTextBox}>
+                <Text style={styles.locationTitle} numberOfLines={2}>
+                  {formData.location_name || 'Lokasi tanpa nama'}
+                </Text>
+                {formData.captured_at ? (
+                  <View style={styles.locationTimeRow}>
+                    <Feather name="clock" size={11} color="#94A3B8" />
+                    <Text style={styles.locationTimeText}>
+                      {formatWatermarkDateTime(new Date(formData.captured_at))}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.locationStatusPill,
+                { backgroundColor: entryLocationStyle.background },
+              ]}
+            >
+              <Feather
+                name={entryLocationStyle.icon}
+                size={12}
+                color={entryLocationStyle.color}
+              />
+              <Text style={[styles.locationStatusText, { color: entryLocationStyle.color }]}>
+                {entryLocationStyle.label}
+              </Text>
+            </View>
+
+            <View style={styles.locationMetaGrid}>
+              <View style={styles.locationMetaItem}>
+                <Text style={styles.locationMetaLabel}>LATITUDE</Text>
+                <Text style={styles.locationMetaValue} numberOfLines={1}>
+                  {formatCoordinate(formData.latitude!, 'N', 'S')}
+                </Text>
+              </View>
+              <View style={styles.locationMetaDivider} />
+              <View style={styles.locationMetaItem}>
+                <Text style={styles.locationMetaLabel}>LONGITUDE</Text>
+                <Text style={styles.locationMetaValue} numberOfLines={1}>
+                  {formatCoordinate(formData.longitude!, 'E', 'W')}
+                </Text>
+              </View>
+              <View style={styles.locationMetaDivider} />
+              <View style={[styles.locationMetaItem, styles.locationMetaItemCompact]}>
+                <Text style={styles.locationMetaLabel}>AKURASI</Text>
+                <Text style={styles.locationMetaValue} numberOfLines={1}>
+                  {formData.accuracy != null ? `±${Math.round(formData.accuracy)} m` : '—'}
+                </Text>
+              </View>
+            </View>
+
+            {entryLocationStatus.status === 'mocked' ? (
+              <View style={styles.locationWarning}>
+                <Feather name="alert-octagon" size={14} color="#B91C1C" />
+                <Text style={styles.locationWarningText}>
+                  Lokasi terdeteksi berasal dari aplikasi Fake GPS. Nonaktifkan aplikasi
+                  tersebut lalu perbarui lokasi.
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.locationEmptyCard,
+              errors?.location ? styles.locationEmptyCardError : null,
+            ]}
+            onPress={handleCaptureLocation}
+            activeOpacity={0.8}
+          >
+            <View style={styles.locationPulseOuter}>
+              <View style={styles.locationPulseInner}>
+                <Feather name="crosshair" size={20} color="#FFFFFF" />
+              </View>
+            </View>
+            <Text style={styles.locationEmptyTitle}>Lokasi belum diambil</Text>
+            <Text style={styles.locationEmptySubtitle}>
+              Ambil lokasi GPS Anda saat ini sebagai bukti verifikasi entri
+            </Text>
+            <View style={styles.locationCaptureButton}>
+              <Feather name="navigation" size={14} color="#FFFFFF" />
+              <Text style={styles.locationCaptureButtonText}>Capture Lokasi</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        {errors?.location ? <Text style={styles.errorText}>{errors.location}</Text> : null}
       </View>
 
       <View style={styles.fieldSection}>
@@ -632,32 +787,41 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
         </View>
 
         <View style={styles.photosRow}>
-          {formData.photos.map((photoUrl, index) => (
-            <View key={`photo-${index}`} style={styles.photoThumbWrapper}>
-              <TouchableOpacity
-                style={styles.photoCard}
-                onPress={() => setPreviewPhotoUri(photoUrl)}
-                activeOpacity={0.85}
-              >
-                <Image
-                  source={{ uri: photoUrl }}
-                  style={styles.photoThumbImage}
-                  resizeMode="cover"
-                />
-                <View style={styles.photoBadgeOverlay}>
-                  <Feather name="map-pin" size={9} color="#FFFFFF" />
-                  <Text style={styles.photoBadgeText}>GPS</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.removePhotoButton}
-                onPress={() => handleRemovePhoto(index)}
-                activeOpacity={0.8}
-              >
-                <Feather name="x" size={12} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-          ))}
+          {formData.photos.map((photoUrl, index) => {
+            const isMocked = isPhotoMocked(photoUrl);
+            return (
+              <View key={`photo-${index}`} style={styles.photoThumbWrapper}>
+                <TouchableOpacity
+                  style={[styles.photoCard, isMocked && styles.photoCardDanger]}
+                  onPress={() => setPreviewPhotoUri(photoUrl)}
+                  activeOpacity={0.85}
+                >
+                  <Image
+                    source={{ uri: photoUrl }}
+                    style={styles.photoThumbImage}
+                    resizeMode="cover"
+                  />
+                  <View
+                    style={[styles.photoBadgeOverlay, isMocked && styles.photoBadgeOverlayDanger]}
+                  >
+                    <Feather
+                      name={isMocked ? 'alert-octagon' : 'map-pin'}
+                      size={9}
+                      color="#FFFFFF"
+                    />
+                    <Text style={styles.photoBadgeText}>{isMocked ? 'FAKE' : 'GPS'}</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.removePhotoButton}
+                  onPress={() => handleRemovePhoto(index)}
+                  activeOpacity={0.8}
+                >
+                  <Feather name="x" size={12} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            );
+          })}
 
           {isProcessingPhoto ? (
             <View style={styles.processingPhotoCard}>
@@ -689,6 +853,17 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
             </TouchableOpacity>
           ) : null}
         </View>
+
+        {hasMockedPhoto ? (
+          <View style={[styles.locationWarning, { marginTop: 6 }]}>
+            <Feather name="alert-octagon" size={14} color="#B91C1C" />
+            <Text style={styles.locationWarningText}>
+              Ada foto dengan lokasi Fake GPS. Hapus foto bertanda FAKE agar diary dapat
+              disimpan.
+            </Text>
+          </View>
+        ) : null}
+        {errors?.photos ? <Text style={styles.errorText}>{errors.photos}</Text> : null}
       </View>
 
       {/* Modal Pilihan Sumber Foto */}
@@ -894,51 +1069,177 @@ const styles = StyleSheet.create({
   notesInputError: {
     borderColor: Colors.semantic.error,
   },
+  locationEmptyCard: {
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#BFDBFE',
+    backgroundColor: '#F8FAFF',
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  locationEmptyCardActive: {
+    borderStyle: 'solid',
+    borderColor: '#93C5FD',
+    backgroundColor: '#EFF6FF',
+  },
+  locationEmptyCardError: {
+    borderColor: Colors.semantic.error,
+    backgroundColor: '#FEF2F2',
+  },
+  locationPulseOuter: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#DBEAFE',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  locationPulseInner: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2563EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  locationEmptyTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  locationEmptySubtitle: {
+    fontSize: 12,
+    color: '#64748B',
+    textAlign: 'center',
+    marginTop: 4,
+    lineHeight: 17,
+    maxWidth: 260,
+  },
+  locationCaptureButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#2563EB',
+    boxShadow: '0px 4px 10px rgba(37, 99, 235, 0.25)',
+  },
+  locationCaptureButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
   locationCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    boxShadow: '0px 1px 3px rgba(15, 23, 42, 0.04)',
+    gap: 12,
+    boxShadow: '0px 2px 8px rgba(15, 23, 42, 0.05)',
     elevation: 1,
   },
+  locationCardDanger: {
+    borderColor: '#FCA5A5',
+  },
+  locationHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
   locationIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#DCFCE7',
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   locationTextBox: {
     flex: 1,
     justifyContent: 'center',
+    minHeight: 40,
   },
   locationTitle: {
-    fontSize: 13.5,
+    fontSize: 14,
     fontWeight: '700',
     color: '#0F172A',
-    marginBottom: 2,
+    lineHeight: 19,
   },
-  locationSubtitle: {
+  locationTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 3,
+  },
+  locationTimeText: {
     fontSize: 11.5,
-    color: '#64748B',
+    color: '#94A3B8',
     fontWeight: '500',
   },
-  verifiedBadge: {
-    backgroundColor: '#DCFCE7',
+  locationStatusPill: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 999,
   },
-  verifiedText: {
-    color: '#16A34A',
-    fontSize: 11,
+  locationStatusText: {
+    fontSize: 11.5,
     fontWeight: '700',
+  },
+  locationMetaGrid: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  locationMetaItem: {
+    flex: 1,
+    gap: 2,
+  },
+  locationMetaItemCompact: {
+    flex: 0.7,
+  },
+  locationMetaDivider: {
+    width: 1,
+    alignSelf: 'stretch',
+    backgroundColor: '#E2E8F0',
+    marginHorizontal: 10,
+  },
+  locationMetaLabel: {
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#94A3B8',
+    letterSpacing: 0.6,
+  },
+  locationMetaValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0F172A',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  locationWarning: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: '#FEF2F2',
+    borderRadius: 10,
+    padding: 10,
+  },
+  locationWarningText: {
+    flex: 1,
+    fontSize: 11.5,
+    color: '#B91C1C',
+    lineHeight: 16,
   },
   photosHeaderRow: {
     flexDirection: 'row',
@@ -985,6 +1286,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#D1D5FA',
     position: 'relative',
   },
+  photoCardDanger: {
+    borderWidth: 2,
+    borderColor: '#DC2626',
+  },
   photoThumbImage: {
     width: '100%',
     height: '100%',
@@ -1000,6 +1305,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 2,
     gap: 2,
+  },
+  photoBadgeOverlayDanger: {
+    backgroundColor: '#DC2626',
   },
   photoBadgeText: {
     color: '#FFFFFF',

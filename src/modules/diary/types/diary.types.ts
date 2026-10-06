@@ -180,6 +180,11 @@ export interface DiaryEntryItem {
   notes?: string | null;
   latitude?: CoordinateValue;
   longitude?: CoordinateValue;
+  location_name?: string | null;
+  captured_at?: string | null;
+  geocoded_at?: string | null;
+  accuracy?: number | string | null;
+  is_mocked?: boolean;
   entry_at: string;
   created_at: string;
   created_by?: string | null;
@@ -234,6 +239,11 @@ export interface CreateDiaryPayload {
   notes?: string;
   latitude?: CoordinateValue;
   longitude?: CoordinateValue;
+  location_name?: string | null;
+  captured_at?: string | null;
+  geocoded_at?: string | null;
+  accuracy?: number | null;
+  is_mocked?: boolean;
   photos?: any[];
 }
 

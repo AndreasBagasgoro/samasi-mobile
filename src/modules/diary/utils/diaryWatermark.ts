@@ -122,6 +122,47 @@ export const getCurrentGPSLocation = async (fallback?: {
   }
 };
 
+export interface EntryLocationResult extends GPSLocationResult {
+  capturedAt: Date;
+  geocodedAt: Date;
+}
+
+/**
+ * Mengambil lokasi GPS untuk entri diary (di-capture manual, terpisah dari lokasi foto).
+ * Berbeda dengan getCurrentGPSLocation, fungsi ini melempar error alih-alih memakai
+ * koordinat fallback, karena lokasi entri dipakai untuk verifikasi.
+ */
+export const captureEntryLocation = async (): Promise<EntryLocationResult> => {
+  const { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== 'granted') {
+    throw new Error('Izin lokasi diperlukan untuk mengambil lokasi entri.');
+  }
+
+  let location: Location.LocationObject;
+  try {
+    location = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High,
+    });
+  } catch {
+    throw new Error('Lokasi tidak tersedia. Pastikan GPS/layanan lokasi aktif lalu coba lagi.');
+  }
+
+  const capturedAt = new Date();
+  const latitude = location.coords.latitude;
+  const longitude = location.coords.longitude;
+  const locationName = await reverseGeocodeCoordinates(latitude, longitude);
+
+  return {
+    latitude,
+    longitude,
+    locationName,
+    accuracy: location.coords.accuracy ?? null,
+    isMocked: location.mocked === true,
+    capturedAt,
+    geocodedAt: new Date(),
+  };
+};
+
 /**
  * Melakukan reverse geocoding dari koordinat (latitude, longitude) yang sudah dimiliki.
  * Berguna saat koordinat sudah tersedia (mis. dari foto yang sudah diambil) dan hanya
