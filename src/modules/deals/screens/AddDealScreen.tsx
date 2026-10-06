@@ -26,14 +26,23 @@ interface SaveResultState {
 }
 
 export const AddDealScreen: React.FC = () => {
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, customer_id, customer_contact_id } = useLocalSearchParams<{
+    id?: string;
+    customer_id?: string;
+    customer_contact_id?: string;
+  }>();
   const isEditMode = Boolean(id);
   const router = useRouter();
   const { stages } = usePipelineStages();
   const stageColors = useStageColors(stages);
   const { createDeal, updateDeal, fetchDealDetail, isSaving } = useDeals({ autoFetch: false });
 
-  const [formData, setFormData] = useState<DealFormData>(EMPTY_FORM);
+  // Prefill customer & kontak jika dibuka dari halaman detail kontak
+  const [formData, setFormData] = useState<DealFormData>({
+    ...EMPTY_FORM,
+    customer_id: customer_id || '',
+    customer_contact_id: customer_contact_id || '',
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoadingDeal, setIsLoadingDeal] = useState(isEditMode);
   const [saveResult, setSaveResult] = useState<SaveResultState>({ status: 'idle' });
