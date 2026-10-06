@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { Colors, Layout } from '@shared/constants';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors, Gradients, Layout } from '@shared/constants';
 import { Input } from '@shared/components';
 import { Filter } from './Filter';
 
@@ -20,59 +22,92 @@ export const CustomerHeader: React.FC<CustomerHeaderProps> = ({
     selectedFilterId,
     onFilterChange,
 }) => {
+    const insets = useSafeAreaInsets();
+
     return (
-        <View style={styles.container}>
-            <View style={styles.head}>
-                <Text style={styles.customerText}>Customer</Text>
-                <View style={styles.customerAmountContainer}>
-                    <Text style={styles.customerAmount}>
-                        {totalCount !== undefined ? `${totalCount} Customers` : 'Amount'}
-                    </Text>
+        <View>
+            <LinearGradient
+                colors={Gradients.primary.colors}
+                start={Gradients.primary.start}
+                end={Gradients.primary.end}
+                style={[styles.container, { paddingTop: insets.top + 20 }]}
+            >
+                <View style={styles.decorCircle} />
+                <View style={styles.head}>
+                    <View>
+                        <Text style={styles.caption}>Relationship</Text>
+                        <Text style={styles.customerText}>Customers</Text>
+                    </View>
+                    <View style={styles.customerAmountContainer}>
+                        <Ionicons name="business-outline" size={13} color={Colors.text.inverse} />
+                        <Text style={styles.customerAmount}>
+                            {totalCount !== undefined ? `${totalCount} Total` : 'Amount'}
+                        </Text>
+                    </View>
                 </View>
-            </View>
-            <View style={styles.searchBarContainer}>
                 <Input
                     value={searchValue}
                     onChangeText={onSearchChange}
                     leftIcon={
-                        <Feather name="search" size={20} color={Colors.text.secondary} />
+                        <Ionicons name="search-outline" size={18} color={Colors.primary} />
                     }
                     placeholder="Search customers..."
-                    placeholderTextColor={Colors.text.secondary}
+                    placeholderTextColor={Colors.text.disabled}
+                    containerStyle={styles.searchContainer}
                     inputContainerStyle={styles.searchBarContainerStyle}
                 />
+            </LinearGradient>
+            <View style={styles.filterContainer}>
+                <Filter
+                    selectedFilterId={selectedFilterId}
+                    onFilterChange={onFilterChange}
+                />
             </View>
-            <Filter
-                selectedFilterId={selectedFilterId}
-                onFilterChange={onFilterChange}
-            />
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: Colors.background,
-        paddingHorizontal: Layout.screenPaddingHorizontal2,
-        paddingTop: 28,
-        paddingBottom: 20,
-        gap: 16,
-        borderBottomWidth: 2,
-        borderBottomColor: Colors.border,
+        paddingHorizontal: Layout.screenPaddingHorizontal3,
+        paddingBottom: 22,
+        gap: 18,
+        borderBottomLeftRadius: 28,
+        borderBottomRightRadius: 28,
+        overflow: 'hidden',
+    },
+    decorCircle: {
+        position: 'absolute',
+        width: 200,
+        height: 200,
+        borderRadius: 100,
+        top: -90,
+        right: -60,
+        backgroundColor: 'rgba(96, 165, 250, 0.12)',
     },
     head: {
         justifyContent: 'space-between',
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-end',
+    },
+    caption: {
+        fontSize: 12,
+        color: Colors.text.inverseMuted,
+        letterSpacing: 0.6,
+        marginBottom: 2,
     },
     customerText: {
-        fontSize: 22,
-        fontWeight: '600',
-        color: Colors.text.primary,
+        fontSize: 26,
+        fontWeight: '700',
+        color: Colors.text.inverse,
     },
     customerAmountContainer: {
-        backgroundColor: Colors.background2,
-        borderRadius: 8,
+        flexDirection: 'row',
+        gap: 6,
+        backgroundColor: Colors.glass.background,
+        borderWidth: 1,
+        borderColor: Colors.glass.border,
+        borderRadius: 20,
         paddingHorizontal: 12,
         paddingVertical: 6,
         alignItems: 'center',
@@ -80,17 +115,20 @@ const styles = StyleSheet.create({
     },
     customerAmount: {
         fontSize: 12,
-        color: Colors.text.secondary,
+        fontWeight: '600',
+        color: Colors.text.inverse,
     },
-    searchBarContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
+    searchContainer: {
+        marginBottom: 0,
     },
     searchBarContainerStyle: {
-        backgroundColor: Colors.background2,
-        borderColor: Colors.border,
+        backgroundColor: Colors.surface,
+        borderColor: 'transparent',
         borderWidth: 1,
-        borderRadius: 12,
+        borderRadius: 16,
     },
-});
+    filterContainer: {
+        paddingHorizontal: Layout.screenPaddingHorizontal2,
+        paddingTop: 16,
+    },
+});

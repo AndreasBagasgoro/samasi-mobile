@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { Colors } from '../constants';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Shadows, getBlueGradient } from '../constants';
 
 export interface ContactCardProps {
   id?: string | number;
@@ -13,19 +14,6 @@ export interface ContactCardProps {
   onPress?: () => void;
 }
 
-// Generator warna avatar sederhana untuk shared component
-const VIBRANT_COLORS = [
-  '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#6366F1', '#EF4444', '#14B8A6',
-];
-
-const getAvatarBg = (str: string = '') => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return VIBRANT_COLORS[Math.abs(hash) % VIBRANT_COLORS.length];
-};
-
 export const ContactCard: React.FC<ContactCardProps> = ({
   name,
   role,
@@ -35,7 +23,10 @@ export const ContactCard: React.FC<ContactCardProps> = ({
   onPress,
 }) => {
   const initial = name ? name.substring(0, 2).toUpperCase() : 'CP';
-  const avatarBg = avatarBackgroundColor || getAvatarBg(name);
+  const avatarGradient = getBlueGradient(name);
+  const avatarColors: [string, string] = avatarBackgroundColor
+    ? [avatarBackgroundColor, avatarBackgroundColor]
+    : avatarGradient;
 
   return (
     <TouchableOpacity
@@ -43,20 +34,32 @@ export const ContactCard: React.FC<ContactCardProps> = ({
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={[styles.avatarCircle, { backgroundColor: avatarBg }]}>
+      <LinearGradient
+        colors={avatarColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.avatarCircle}
+      >
         <Text style={styles.avatarText}>{initial}</Text>
-      </View>
+      </LinearGradient>
       
       <View style={styles.contactInfo}>
         <Text style={styles.contactName}>{name}</Text>
         {role ? <Text style={styles.contactRole}>{role}</Text> : null}
-        <Text style={styles.contactMeta}>
-          {email || '-'}{phone ? ` · ${phone}` : ''}
-        </Text>
+        <View style={styles.metaRow}>
+          <Ionicons name="mail-outline" size={12} color={Colors.text.disabled} />
+          <Text style={styles.contactMeta} numberOfLines={1}>{email || '-'}</Text>
+        </View>
+        {phone ? (
+          <View style={styles.metaRow}>
+            <Ionicons name="call-outline" size={12} color={Colors.text.disabled} />
+            <Text style={styles.contactMeta} numberOfLines={1}>{phone}</Text>
+          </View>
+        ) : null}
       </View>
 
       <TouchableOpacity activeOpacity={0.7} style={styles.moreButton}>
-        <Feather name="more-vertical" size={18} color={Colors.text.secondary} />
+        <Ionicons name="ellipsis-vertical" size={16} color={Colors.text.secondary} />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -65,18 +68,19 @@ export const ContactCard: React.FC<ContactCardProps> = ({
 const styles = StyleSheet.create({
   contactCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 14,
+    borderRadius: 18,
     padding: 14,
     borderColor: Colors.border,
     borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    ...Shadows.sm,
   },
   avatarCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -96,13 +100,26 @@ const styles = StyleSheet.create({
   },
   contactRole: {
     fontSize: 12,
-    color: Colors.text.secondary,
+    fontWeight: '500',
+    color: Colors.primary,
+    marginBottom: 2,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
   contactMeta: {
+    flexShrink: 1,
     fontSize: 11,
-    color: Colors.text.disabled,
+    color: Colors.text.secondary,
   },
   moreButton: {
-    padding: 4,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

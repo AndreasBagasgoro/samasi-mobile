@@ -1,6 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { Colors } from '@shared/constants';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors, Shadows } from '@shared/constants';
+
+const SectionTitle: React.FC<{ icon: keyof typeof Ionicons.glyphMap; title: string }> = ({ icon, title }) => (
+  <View style={styles.sectionHeader}>
+    <View style={styles.sectionIcon}>
+      <Ionicons name={icon} size={15} color={Colors.primary} />
+    </View>
+    <Text style={styles.sectionTitle}>{title}</Text>
+  </View>
+);
 import { CustomerItem } from '../../types';
 
 interface OverviewTabProps {
@@ -18,7 +28,7 @@ export const OverviewTabScreen: React.FC<OverviewTabProps> = ({ customer }) => {
       <View style={styles.infoSection}>
         {/* Company Info Card */}
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>COMPANY INFO</Text>
+          <SectionTitle icon="business-outline" title="Company Info" />
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Company Name</Text>
@@ -56,7 +66,7 @@ export const OverviewTabScreen: React.FC<OverviewTabProps> = ({ customer }) => {
 
         {/* Address Info Card */}
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>ADDRESS & LOCATION</Text>
+          <SectionTitle icon="location-outline" title="Address & Location" />
 
           <View style={styles.infoColumnRow}>
             <Text style={styles.infoLabel}>Address</Text>
@@ -73,7 +83,7 @@ export const OverviewTabScreen: React.FC<OverviewTabProps> = ({ customer }) => {
 
         {/* Terms & Approval Status Card */}
         <View style={styles.infoCard}>
-          <Text style={styles.sectionTitle}>TERMS & APPROVAL</Text>
+          <SectionTitle icon="shield-checkmark-outline" title="Terms & Approval" />
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Payment Terms</Text>
@@ -136,18 +146,31 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
     borderColor: Colors.border,
     borderWidth: 1,
     gap: 12,
+    ...Shadows.sm,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 4,
+  },
+  sectionIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    backgroundColor: Colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
-    color: Colors.text.secondary,
-    letterSpacing: 0.5,
-    marginBottom: 4,
+    color: Colors.text.primary,
   },
   infoRow: {
     flexDirection: 'row',
@@ -163,6 +186,9 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
   },
   infoValue: {
+    flexShrink: 1,
+    marginLeft: 12,
+    textAlign: 'right',
     fontSize: 13,
     fontWeight: '600',
     color: Colors.text.primary,

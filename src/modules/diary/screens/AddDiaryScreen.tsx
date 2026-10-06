@@ -37,16 +37,30 @@ export const AddDiaryScreen: React.FC = () => {
     interaction_type: 'VISIT',
     interaction_type_id: '1',
     notes: '',
-    latitude: 1.3521,
-    longitude: 103.8198,
-    location_name: 'Raffles Place',
+    latitude: undefined,
+    longitude: undefined,
+    location_name: '',
+    captured_at: undefined,
+    geocoded_at: undefined,
+    accuracy: null,
+    is_mocked: false,
     photos: [],
+    photo_metadata: {},
   });
 
   const selectedCustomer = formattedCustomers.find(
     (c) => String(c.id) === String(formData.customer_id)
   );
   const customerName = selectedCustomer?.name || 'Customer';
+
+  // Save diblokir jika lokasi entri belum di-capture / Fake GPS,
+  // atau ada foto yang terdeteksi Fake GPS (foto sendiri tidak wajib)
+  const hasEntryLocation = formData.latitude != null && formData.longitude != null;
+  const isEntryLocationMocked = hasEntryLocation && !!formData.is_mocked;
+  const hasMockedPhoto = formData.photos.some(
+    (uri) => !!formData.photo_metadata?.[uri]?.is_mocked
+  );
+  const isSaveBlocked = !hasEntryLocation || isEntryLocationMocked || hasMockedPhoto;
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -62,6 +76,14 @@ export const AddDiaryScreen: React.FC = () => {
     }
     if (!formData.notes.trim()) {
       newErrors.notes = 'Notes wajib diisi';
+    }
+    if (!hasEntryLocation) {
+      newErrors.location = 'Lokasi wajib di-capture';
+    } else if (isEntryLocationMocked) {
+      newErrors.location = 'Lokasi terdeteksi Fake GPS, perbarui lokasi terlebih dahulu';
+    }
+    if (hasMockedPhoto) {
+      newErrors.photos = 'Hapus foto yang terdeteksi Fake GPS terlebih dahulu';
     }
 
     setErrors(newErrors);
@@ -90,15 +112,20 @@ export const AddDiaryScreen: React.FC = () => {
       title: titleToSend,
       notes: formData.notes.trim(),
       entry_at: new Date().toISOString(),
-      latitude: formData.latitude ?? 1.3521,
-      longitude: formData.longitude ?? 103.8198,
+      latitude: formData.latitude,
+      longitude: formData.longitude,
+      location_name: formData.location_name || undefined,
+      captured_at: formData.captured_at,
+      geocoded_at: formData.geocoded_at,
+      accuracy: formData.accuracy ?? null,
+      is_mocked: formData.is_mocked ?? false,
       ...(standardUrlPhotos.length > 0
         ? {
             photos: standardUrlPhotos.map((url) => ({
               photo_url: url,
               caption: `Photo for ${customerName}`,
-              latitude: formData.latitude ?? 1.3521,
-              longitude: formData.longitude ?? 103.8198,
+              latitude: formData.latitude,
+              longitude: formData.longitude,
             })),
           }
         : {}),
@@ -111,20 +138,25 @@ export const AddDiaryScreen: React.FC = () => {
           ''
       );
 
-      // Upload local watermarked photos jika ada
+      // Upload local watermarked photos satu per satu agar metadata lokasi
+      // (termasuk accuracy & is_mocked) tersimpan per foto
       if (diaryId && localWatermarkedPhotos.length > 0) {
-        try {
-          await diaryService.uploadDiaryPhotos(
-            diaryId,
-            localWatermarkedPhotos,
-            {
+        for (const photoUri of localWatermarkedPhotos) {
+          const meta = formData.photo_metadata?.[photoUri];
+          try {
+            await diaryService.uploadDiaryPhotos(diaryId, [photoUri], {
               caption: `Selfie & Evidence for ${customerName}`,
-              latitude: formData.latitude ?? 1.3521,
-              longitude: formData.longitude ?? 103.8198,
-            }
-          );
-        } catch (uploadErr) {
-          console.warn('Gagal mengunggah foto selfie ke server:', uploadErr);
+              latitude: meta?.latitude,
+              longitude: meta?.longitude,
+              captured_at: meta?.captured_at,
+              location_name: meta?.location_name,
+              geocoded_at: meta?.geocoded_at,
+              accuracy: meta?.accuracy ?? null,
+              is_mocked: meta?.is_mocked ?? false,
+            });
+          } catch (uploadErr) {
+            console.warn('Gagal mengunggah foto selfie ke server:', uploadErr);
+          }
         }
       }
 
@@ -157,10 +189,15 @@ export const AddDiaryScreen: React.FC = () => {
       interaction_type: 'VISIT',
       interaction_type_id: '1',
       notes: '',
-      latitude: 1.3521,
-      longitude: 103.8198,
-      location_name: 'Raffles Place',
+      latitude: undefined,
+      longitude: undefined,
+      location_name: '',
+      captured_at: undefined,
+      geocoded_at: undefined,
+      accuracy: null,
+      is_mocked: false,
       photos: [],
+      photo_metadata: {},
     });
     setErrors({});
   };
@@ -211,6 +248,7 @@ export const AddDiaryScreen: React.FC = () => {
         title="New Diary"
         onSave={handleSave}
         isSaving={isLoading}
+        saveDisabled={isSaveBlocked}
       />
       <ScrollView showsVerticalScrollIndicator={false}>
         <DiaryForm

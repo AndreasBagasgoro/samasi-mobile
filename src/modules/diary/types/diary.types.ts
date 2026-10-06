@@ -160,6 +160,11 @@ export interface DiaryPhotoItem {
   photo_object_key?: string | null;
   photo_file_name?: string | null;
   caption?: string | null;
+  captured_at?: string | null;
+  location_name?: string | null;
+  geocoded_at?: string | null;
+  accuracy?: number | string | null;
+  is_mocked?: boolean;
   [key: string]: any;
 }
 
@@ -175,6 +180,11 @@ export interface DiaryEntryItem {
   notes?: string | null;
   latitude?: CoordinateValue;
   longitude?: CoordinateValue;
+  location_name?: string | null;
+  captured_at?: string | null;
+  geocoded_at?: string | null;
+  accuracy?: number | string | null;
+  is_mocked?: boolean;
   entry_at: string;
   created_at: string;
   created_by?: string | null;
@@ -229,6 +239,11 @@ export interface CreateDiaryPayload {
   notes?: string;
   latitude?: CoordinateValue;
   longitude?: CoordinateValue;
+  location_name?: string | null;
+  captured_at?: string | null;
+  geocoded_at?: string | null;
+  accuracy?: number | null;
+  is_mocked?: boolean;
   photos?: any[];
 }
 

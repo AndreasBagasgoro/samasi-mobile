@@ -105,20 +105,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
+    borderColor: Colors.border,
+    borderRadius: 14,
     backgroundColor: Colors.surface,
     minHeight: 48,
   },
   inputFocused: {
-    borderColor: Colors.text.disabled,
-    borderWidth: 2,
+    borderColor: Colors.primaryLight,
+    backgroundColor: Colors.surface,
+    boxShadow: '0px 0px 0px 3px rgba(59, 130, 246, 0.15)',
   },
   inputError: { 
     borderColor: Colors.semantic.error,
   },
   inputDisabled: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.background2,
     borderColor: Colors.border,
   },
   inputMultiline: {

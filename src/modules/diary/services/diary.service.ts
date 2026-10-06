@@ -89,7 +89,16 @@ export const diaryService = {
     async uploadDiaryPhotos(
         id: string | number,
         photos: DiaryPhotoInput[],
-        metadata?: { caption?: string; latitude?: number; longitude?: number }
+        metadata?: {
+            caption?: string;
+            latitude?: number;
+            longitude?: number;
+            captured_at?: string;
+            location_name?: string;
+            geocoded_at?: string;
+            accuracy?: number | null;
+            is_mocked?: boolean;
+        }
     ): Promise<any> {
         const formData = new FormData();
 
@@ -128,6 +137,11 @@ export const diaryService = {
         if (metadata?.caption) formData.append('caption', metadata.caption);
         if (metadata?.latitude !== undefined) formData.append('latitude', String(metadata.latitude));
         if (metadata?.longitude !== undefined) formData.append('longitude', String(metadata.longitude));
+        if (metadata?.captured_at) formData.append('captured_at', metadata.captured_at);
+        if (metadata?.location_name) formData.append('location_name', metadata.location_name);
+        if (metadata?.geocoded_at) formData.append('geocoded_at', metadata.geocoded_at);
+        if (metadata?.accuracy != null) formData.append('accuracy', String(metadata.accuracy));
+        if (metadata?.is_mocked !== undefined) formData.append('is_mocked', String(metadata.is_mocked));
 
         return mobileApiService.postMultipart(`/diary/${id}/photos/upload`, formData);
     },

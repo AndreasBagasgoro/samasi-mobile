@@ -121,7 +121,7 @@ export const DiaryScreen: React.FC = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <StatusBar style="light" />
       <ScrollView
         style={styles.scrollContainer}
@@ -131,8 +131,8 @@ export const DiaryScreen: React.FC = () => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={refreshDiaries}
-            colors={['#3d81c5']}
-            tintColor="#3d81c5"
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
           />
         }
       >
@@ -146,7 +146,7 @@ export const DiaryScreen: React.FC = () => {
 
         {isLoading && !isRefreshing && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#3d81c5" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={styles.loadingText}>Memuat data diary...</Text>
           </View>
         )}
@@ -165,7 +165,11 @@ export const DiaryScreen: React.FC = () => {
           <View style={styles.diaryCardContainer}>
             {groupedDiaries.map((group, groupIdx) => (
               <View key={group.dateKey || groupIdx} style={styles.dateGroup}>
-                <Text style={styles.dateHeader}>{group.dateLabel}</Text>
+                <View style={styles.dateHeaderRow}>
+                  <View style={styles.dateDot} />
+                  <Text style={styles.dateHeader}>{group.dateLabel}</Text>
+                  <View style={styles.dateLine} />
+                </View>
                 <View style={styles.groupCards}>
                   {group.items.map((item, itemIdx) => {
                     const cardKey =
@@ -221,18 +225,35 @@ const styles = StyleSheet.create({
   },
   diaryCardContainer: {
     paddingHorizontal: Layout.screenPaddingHorizontal2,
-    paddingTop: 12,
-    gap: 16,
+    paddingTop: 16,
+    gap: 20,
   },
   dateGroup: {
     gap: 10,
   },
+  dateHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginLeft: 2,
+  },
+  dateDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primaryLight,
+    borderWidth: 2,
+    borderColor: Colors.primarySoft,
+  },
   dateHeader: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#64748B',
-    marginTop: 4,
-    marginLeft: 2,
+    fontWeight: '700',
+    color: Colors.text.label,
+  },
+  dateLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
   },
   groupCards: {
     gap: 12,
@@ -249,20 +270,20 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 13,
-    color: '#64748B',
+    color: Colors.text.secondary,
   },
   errorContainer: {
     marginHorizontal: Layout.screenPaddingHorizontal2,
     marginVertical: 12,
     padding: 12,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 8,
+    backgroundColor: Colors.semanticBg.error,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: '#FCA5A5',
   },
   errorText: {
     fontSize: 13,
-    color: '#991B1B',
+    color: Colors.semantic.error,
     textAlign: 'center',
   },
 });

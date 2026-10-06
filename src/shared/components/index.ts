@@ -10,4 +10,5 @@ export * from './FloatingButton';
 export * from './Dropdown';
 export * from './TextArea';
 export * from './Filter';
+export * from './SaveResult';
 export { default as Header } from './Header';

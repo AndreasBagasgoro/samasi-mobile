@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
   },
   tabItem: {
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -95,18 +95,19 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: Colors.text.secondary,
+    color: Colors.text.disabled,
   },
   activeTabText: {
-    color: '#3B82F6', // 👈 Teks Biru saat Aktif
+    color: Colors.primary,
     fontWeight: '700',
   },
   animatedIndicator: {
     position: 'absolute',
     bottom: 0,
     left: 0,
-    height: 2.5,
-    backgroundColor: '#3B82F6', // 👈 Garis Biru Menggeser (Gliding Underline)
-    borderRadius: 2,
+    height: 3,
+    backgroundColor: Colors.primary, // Garis biru menggeser (gliding underline)
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
   },
 });

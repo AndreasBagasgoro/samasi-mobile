@@ -66,8 +66,8 @@ export const DiaryDetailScreen: React.FC = () => {
   const diary = getDiaryById(id);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+      <StatusBar style="light" />
 
       {/* 1. Header (Back | Diary Entry | ···) */}
       <DiaryDetailHeader
@@ -79,7 +79,7 @@ export const DiaryDetailScreen: React.FC = () => {
       {/* Loading banner jika data detail pertama kali diambil */}
       {isLoading && !isRefreshing && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#0052CC" />
+          <ActivityIndicator size="small" color={Colors.primary} />
           <Text style={styles.loadingText}>Memuat detail diary...</Text>
         </View>
       )}
@@ -100,8 +100,8 @@ export const DiaryDetailScreen: React.FC = () => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            colors={['#0052CC']}
-            tintColor="#0052CC"
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
           />
         }
       >
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 16,
     paddingBottom: 40,
     gap: 16,
   },
@@ -138,25 +138,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 8,
     gap: 8,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: Colors.primarySoft,
   },
   loadingText: {
     fontSize: 12,
-    color: '#1D4ED8',
+    color: Colors.primary,
     fontWeight: '500',
   },
   errorContainer: {
     marginHorizontal: 16,
     marginTop: 8,
     padding: 10,
-    borderRadius: 8,
-    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    backgroundColor: Colors.semanticBg.error,
     borderWidth: 1,
     borderColor: '#FCA5A5',
   },
   errorText: {
     fontSize: 12,
-    color: '#991B1B',
+    color: Colors.semantic.error,
     textAlign: 'center',
   },
 });

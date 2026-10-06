@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { Colors } from '@shared/constants';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors, Gradients, Shadows } from '@shared/constants';
 import { DealItem } from '../types';
 
 export const DealsCard: React.FC<DealItem> = ({
@@ -17,6 +18,14 @@ export const DealsCard: React.FC<DealItem> = ({
       onPress={onPress}
       activeOpacity={0.7}
     >
+      <LinearGradient
+        colors={Gradients.accent.colors}
+        start={Gradients.accent.start}
+        end={Gradients.accent.end}
+        style={styles.dealIconCircle}
+      >
+        <Ionicons name="briefcase-outline" size={20} color={Colors.text.inverse} />
+      </LinearGradient>
       <View style={styles.dealInfo}>
         <Text style={styles.dealTitle}>{title}</Text>
         <Text style={styles.dealAmount}>{amount}</Text>
@@ -24,7 +33,12 @@ export const DealsCard: React.FC<DealItem> = ({
           <View style={styles.stageTag}>
             <Text style={styles.stageTagText}>{stage}</Text>
           </View>
-          {date && <Text style={styles.dealDate}>{date}</Text>}
+          {date && (
+            <View style={styles.dateRow}>
+              <Ionicons name="calendar-outline" size={11} color={Colors.text.disabled} />
+              <Text style={styles.dealDate}>{date}</Text>
+            </View>
+          )}
         </View>
       </View>
     </TouchableOpacity>
@@ -34,19 +48,19 @@ export const DealsCard: React.FC<DealItem> = ({
 const styles = StyleSheet.create({
   dealCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 14,
+    borderRadius: 20,
     padding: 16,
     borderColor: Colors.border,
     borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
+    ...Shadows.sm,
   },
   dealIconCircle: {
     width: 44,
     height: 44,
-    borderRadius: 12,
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -60,9 +74,9 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
   },
   dealAmount: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#10B981',
+    color: Colors.primary,
   },
   tagRow: {
     flexDirection: 'row',
@@ -71,15 +85,20 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   stageTag: {
-    backgroundColor: Colors.background2,
+    backgroundColor: Colors.primarySoft,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
   },
   stageTagText: {
     fontSize: 10,
-    fontWeight: '600',
-    color: Colors.text.secondary,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   dealDate: {
     fontSize: 11,

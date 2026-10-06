@@ -1,34 +1,39 @@
 import React from 'react';
-import { FontAwesome, Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import { BlueGradientSet } from '@shared/constants';
 import { QuickActionItem, ReminderItem } from '../types/home.types';
 
 export const QUICK_ACTION_ITEMS: QuickActionItem[] = [
   {
     id: 'new-diary',
     label: 'New Diary',
-    icon: <FontAwesome name="book" size={20} color="#FFF" />,
-    backgroundColor: '#3B82F6',
+    description: 'Log an activity',
+    icon: <Ionicons name="create-outline" size={20} color="#FFF" />,
+    gradient: BlueGradientSet[0],
     onPress: () => {},
   },
   {
     id: 'new-customer',
     label: 'New Customer',
-    icon: <Feather name="user-plus" size={20} color="#FFF" />,
-    backgroundColor: '#10B981',
+    description: 'Add a company',
+    icon: <Ionicons name="person-add-outline" size={20} color="#FFF" />,
+    gradient: BlueGradientSet[1],
     onPress: () => {},
   },
   {
     id: 'search-contact',
-    label: 'Search contact',
-    icon: <Feather name="search" size={20} color="#FFF" />,
-    backgroundColor: '#F59E0B',
+    label: 'Search Contact',
+    description: 'Find people fast',
+    icon: <Ionicons name="search-outline" size={20} color="#FFF" />,
+    gradient: BlueGradientSet[3],
     onPress: () => {},
   },
   {
     id: 'create-deal',
     label: 'Create Deal',
-    icon: <Feather name="plus" size={20} color="#FFF" />,
-    backgroundColor: '#8B5CF6',
+    description: 'Start a pipeline',
+    icon: <Ionicons name="briefcase-outline" size={20} color="#FFF" />,
+    gradient: BlueGradientSet[2],
     onPress: () => {},
   },
 ];
@@ -39,8 +44,9 @@ export const REMINDER_ITEMS: ReminderItem[] = [
     title: 'Pacific Rim Logistics',
     label: 'Daily Log',
     time: '10:00 AM',
-    iconColor: '#3B82F6',
-    iconBackgroundColor: 'rgba(59, 130, 246, 0.12)',
+    icon: 'document-text-outline',
+    iconColor: '#2563EB',
+    iconBackgroundColor: 'rgba(37, 99, 235, 0.10)',
     onPress: () => {},
   },
   {
@@ -48,8 +54,9 @@ export const REMINDER_ITEMS: ReminderItem[] = [
     title: 'Follow up Lead: Acme Corp',
     label: 'Call Meeting',
     time: '02:30 PM',
-    iconColor: '#F59E0B',
-    iconBackgroundColor: 'rgba(245, 158, 11, 0.12)',
+    icon: 'call-outline',
+    iconColor: '#0EA5E9',
+    iconBackgroundColor: 'rgba(14, 165, 233, 0.12)',
     onPress: () => {},
   },
   {
@@ -57,8 +64,9 @@ export const REMINDER_ITEMS: ReminderItem[] = [
     title: 'Contract Sign: Delta Inc',
     label: 'Urgent Deal',
     time: '04:45 PM',
-    iconColor: '#EF4444',
-    iconBackgroundColor: 'rgba(239, 68, 68, 0.12)',
+    icon: 'flag-outline',
+    iconColor: '#E5484D',
+    iconBackgroundColor: 'rgba(229, 72, 77, 0.10)',
     onPress: () => {},
   },
 ];

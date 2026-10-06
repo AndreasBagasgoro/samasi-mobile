@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import Entypo from '@expo/vector-icons/Entypo';
-import { Layout, Colors } from "@shared/constants";
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Layout, Colors, Gradients } from "@shared/constants";
 import { useRouter } from 'expo-router';
 
 export interface FormHeaderProps {
@@ -10,6 +11,8 @@ export interface FormHeaderProps {
     onSave?: () => void;
     saveText?: string;
     isSaving?: boolean;
+    /** Nonaktifkan tombol save (mis. karena data form belum valid) */
+    saveDisabled?: boolean;
 }
 export const FormHeader: React.FC<FormHeaderProps> = ({
     title = 'Header Title',
@@ -17,7 +20,9 @@ export const FormHeader: React.FC<FormHeaderProps> = ({
     onSave,
     saveText = 'Save',
     isSaving = false,
+    saveDisabled = false,
 }) => {
+    const isSaveDisabled = isSaving || saveDisabled;
 
     const router = useRouter();
 
@@ -43,18 +48,27 @@ export const FormHeader: React.FC<FormHeaderProps> = ({
                 onPress={handleBack}
                 activeOpacity={0.7}
             >
-                <Entypo name="chevron-left" size={22} color={Colors.text.primary} />
-                <Text style={styles.backText}>Back</Text>
+                <View style={styles.backIcon}>
+                    <Ionicons name="chevron-back" size={18} color={Colors.primary} />
+                </View>
             </TouchableOpacity>
 
             {/* 3. Tombol Save */}
             <TouchableOpacity
-                style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+                style={[styles.saveButton, isSaveDisabled && styles.saveButtonDisabled]}
                 onPress={onSave}
-                disabled={isSaving}
+                disabled={isSaveDisabled}
                 activeOpacity={0.8}
             >
-                <Text style={styles.saveButtonText}>{saveText}</Text>
+                <LinearGradient
+                    colors={Gradients.button.colors}
+                    start={Gradients.button.start}
+                    end={Gradients.button.end}
+                    style={styles.saveGradient}
+                >
+                    <Ionicons name="checkmark" size={14} color={Colors.text.inverse} />
+                    <Text style={styles.saveButtonText}>{saveText}</Text>
+                </LinearGradient>
             </TouchableOpacity>
         </View>
     );
@@ -85,6 +99,14 @@ const styles = StyleSheet.create({
         gap: 2,
         zIndex: 1,
     },
+    backIcon: {
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        backgroundColor: Colors.primarySoft,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     backText: {
         fontSize: 16,
         fontWeight: '400',
@@ -101,27 +123,32 @@ const styles = StyleSheet.create({
         zIndex: 0,
     },
     title: {
-        fontSize: 18,
-        fontWeight: '600',
+        fontSize: 17,
+        fontWeight: '700',
         color: Colors.text.primary,
         textAlign: 'center',
     },
     saveButton: {
-        backgroundColor: Colors.semantic.info,
-        paddingHorizontal: 14,
-        paddingVertical: 8,
-        borderRadius: 6,
-        justifyContent: 'center',
-        alignItems: 'center',
+        borderRadius: 12,
+        overflow: 'hidden',
         minWidth: 48,
         zIndex: 1,
+        boxShadow: '0px 4px 10px rgba(29, 78, 216, 0.25)',
+    },
+    saveGradient: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+        paddingHorizontal: 14,
+        paddingVertical: 9,
     },
     saveButtonDisabled: {
         opacity: 0.6,
     },
     saveButtonText: {
-        fontSize: 12,
-        fontWeight: '500',
+        fontSize: 13,
+        fontWeight: '600',
         color: Colors.text.inverse,
     },
     bodyContent: {

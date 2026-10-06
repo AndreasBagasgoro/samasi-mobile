@@ -8,7 +8,8 @@ import {
   TextStyle,
   TouchableOpacityProps,
 } from 'react-native';
-import { Colors, Spacing, Typography } from '../constants';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients, Shadows, Spacing, Typography } from '../constants';
 
 export interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -38,7 +39,7 @@ export const Button: React.FC<ButtonProps> = ({
 
     switch (variant) {
       case 'secondary':
-        backgroundColor = Colors.secondary;
+        backgroundColor = Colors.primarySoft;
         break;
       case 'outline':
         backgroundColor = 'transparent';
@@ -82,7 +83,7 @@ export const Button: React.FC<ButtonProps> = ({
   const getTextStyle = (): TextStyle => {
     let color = Colors.text.inverse;
 
-    if (variant === 'outline' || variant === 'ghost') {
+    if (variant === 'outline' || variant === 'ghost' || variant === 'secondary') {
       color = Colors.primary;
     }
 
@@ -106,16 +107,26 @@ export const Button: React.FC<ButtonProps> = ({
     };
   };
 
+  const isGradient = variant === 'primary' && !disabled;
+
   return (
     <TouchableOpacity
-      style={[styles.container, getContainerStyle(), style]}
+      style={[styles.container, getContainerStyle(), isGradient && styles.gradientContainer, style]}
       disabled={disabled || loading}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
       {...props}
     >
+      {isGradient && (
+        <LinearGradient
+          colors={Gradients.button.colors}
+          start={Gradients.button.start}
+          end={Gradients.button.end}
+          style={StyleSheet.absoluteFill}
+        />
+      )}
       {loading ? (
         <ActivityIndicator
-          color={variant === 'outline' || variant === 'ghost' ? Colors.primary : Colors.text.inverse}
+          color={variant === 'primary' ? Colors.text.inverse : Colors.primary}
           size="small"
         />
       ) : (
@@ -127,13 +138,19 @@ export const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 8,
+    borderRadius: 12,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
   },
+  gradientContainer: {
+    backgroundColor: Colors.primary,
+    ...Shadows.lg,
+  },
   text: {
     ...Typography.styles.button,
+    letterSpacing: 0.3,
     textAlign: 'center',
   },
 });

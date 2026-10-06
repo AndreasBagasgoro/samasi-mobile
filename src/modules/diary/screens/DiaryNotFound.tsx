@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors } from '@shared/constants';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from '@shared/constants';
 
 interface DiaryNotFoundProps {
   isSearchActive?: boolean;
@@ -10,8 +11,15 @@ interface DiaryNotFoundProps {
 export const DiaryNotFound: React.FC<DiaryNotFoundProps> = ({ isSearchActive = false }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.iconContainer}>
-        <MaterialIcons name={isSearchActive ? "search-off" : "event-busy"} color={Colors.semantic.info} size={36} />
+      <View style={styles.iconHalo}>
+        <LinearGradient
+          colors={Gradients.button.colors}
+          start={Gradients.button.start}
+          end={Gradients.button.end}
+          style={styles.iconContainer}
+        >
+          <MaterialIcons name={isSearchActive ? "search-off" : "event-note"} color={Colors.text.inverse} size={34} />
+        </LinearGradient>
       </View>
       <View style={styles.textContainer}>
         <Text style={styles.title}>
@@ -37,11 +45,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
   },
-  iconContainer: {
-    width: 72,
-    height: 72,
+  iconHalo: {
+    padding: 10,
     borderRadius: 36,
-    backgroundColor: Colors.semanticBg.info,
+    backgroundColor: Colors.primarySoft,
+  },
+  iconContainer: {
+    width: 76,
+    height: 76,
+    borderRadius: 26,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -54,7 +66,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.text.primary,
     textAlign: 'center',
   },

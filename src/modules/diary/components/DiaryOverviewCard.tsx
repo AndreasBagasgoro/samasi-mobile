@@ -1,13 +1,15 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { DiaryItem } from '../types';
 import {
   formatDiaryDateTime,
   getInitials,
-  getAvatarColor,
+  getAvatarGradient,
   getInteractionBadgeStyle,
 } from '../utils/diary.utils';
-import { Colors } from '@shared/constants';
+import { Colors, Shadows } from '@shared/constants';
 
 export interface DiaryOverviewCardProps {
   diary: DiaryItem;
@@ -16,7 +18,7 @@ export interface DiaryOverviewCardProps {
 export const DiaryOverviewCard: React.FC<DiaryOverviewCardProps> = ({ diary }) => {
   const displayCustomer = diary.customerName || diary.title || 'Orient Star Shipping';
   const customerInitials = getInitials(displayCustomer, 'OS');
-  const avatarBg = getAvatarColor(displayCustomer);
+  const avatarGradient = getAvatarGradient(displayCustomer);
 
   const displayType = diary.interactionType || 'Visit';
   const badgeStyle = getInteractionBadgeStyle(displayType);
@@ -34,17 +36,26 @@ export const DiaryOverviewCard: React.FC<DiaryOverviewCardProps> = ({ diary }) =
     <View style={styles.cardContainer}>
       <View style={styles.headerRow}>
         <View style={[styles.badge, { backgroundColor: badgeStyle.bg }]}>
+          <Ionicons name={badgeStyle.icon} size={13} color={badgeStyle.text} />
           <Text style={[styles.badgeText, { color: badgeStyle.text }]}>
             {displayType}
           </Text>
         </View>
-        <Text style={styles.dateText}>{formattedDateTime}</Text>
+        <View style={styles.dateRow}>
+          <Ionicons name="calendar-outline" size={12} color={Colors.text.secondary} />
+          <Text style={styles.dateText}>{formattedDateTime}</Text>
+        </View>
       </View>
 
       <View style={styles.customerRow}>
-        <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
+        <LinearGradient
+          colors={avatarGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.avatar}
+        >
           <Text style={styles.avatarText}>{customerInitials}</Text>
-        </View>
+        </LinearGradient>
         <View style={styles.customerInfo}>
           <Text style={styles.customerName} numberOfLines={1}>
             {displayCustomer}
@@ -56,6 +67,10 @@ export const DiaryOverviewCard: React.FC<DiaryOverviewCardProps> = ({ diary }) =
       </View>
 
       <View style={styles.notesContainer}>
+        <View style={styles.notesHeader}>
+          <Ionicons name="document-text-outline" size={14} color={Colors.primary} />
+          <Text style={styles.notesLabel}>Notes</Text>
+        </View>
         <Text style={styles.notesText}>{notes}</Text>
       </View>
     </View>
@@ -65,15 +80,11 @@ export const DiaryOverviewCard: React.FC<DiaryOverviewCardProps> = ({ diary }) =
 const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 22,
+    padding: 18,
     borderWidth: 1,
     borderColor: Colors.border,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    ...Shadows.md,
   },
   headerRow: {
     flexDirection: 'row',
@@ -82,17 +93,25 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 12,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   badgeText: {
     fontSize: 12,
     fontWeight: '600',
   },
   dateText: {
-    fontSize: 13,
-    color: '#94A3B8',
+    fontSize: 12,
+    color: Colors.text.secondary,
     fontWeight: '500',
   },
   customerRow: {
@@ -101,9 +120,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -118,22 +137,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   customerName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#0F172A',
+    color: Colors.text.primary,
     marginBottom: 3,
   },
   contactSubtitle: {
     fontSize: 13,
-    color: '#64748B',
+    color: Colors.text.secondary,
     fontWeight: '400',
   },
   notesContainer: {
     marginTop: 2,
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    padding: 14,
+    gap: 8,
+  },
+  notesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  notesLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.primary,
+    letterSpacing: 0.4,
   },
   notesText: {
     fontSize: 13.5,
     lineHeight: 22,
-    color: '#334155',
+    color: Colors.text.label,
   },
 });

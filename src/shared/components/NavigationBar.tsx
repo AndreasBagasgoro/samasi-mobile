@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
-import { FontAwesome, Feather, Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors, Gradients } from '../constants';
 
 export interface NavigationMenuItem {
   id: string;
@@ -14,66 +17,50 @@ export interface NavigationBarProps {
   items?: NavigationMenuItem[];
 }
 
+const ACTIVE_ICON_COLOR = Colors.text.inverse;
+const INACTIVE_ICON_COLOR = Colors.text.disabled;
+
+const renderIonicon = (
+  activeName: keyof typeof Ionicons.glyphMap,
+  inactiveName: keyof typeof Ionicons.glyphMap,
+) => (isActive: boolean) => (
+  <Ionicons
+    name={isActive ? activeName : inactiveName}
+    size={20}
+    color={isActive ? ACTIVE_ICON_COLOR : INACTIVE_ICON_COLOR}
+  />
+);
+
 export const defaultNavigationItems: NavigationMenuItem[] = [
   {
     id: 'home',
     title: 'Home',
     route: '/home',
-    icon: (isActive) => (
-      <Ionicons
-        name={isActive ? 'home' : 'home-outline'}
-        size={22}
-        color={isActive ? '#0F172A' : '#64748B'}
-      />
-    ),
+    icon: renderIonicon('grid', 'grid-outline'),
   },
   {
     id: 'customers',
     title: 'Customers',
     route: '/home/customers',
-    icon: (isActive) => (
-      <FontAwesome
-        name={isActive ? 'users' : 'user-o'}
-        size={22}
-        color={isActive ? '#0F172A' : '#64748B'}
-      />
-    ),
+    icon: renderIonicon('people', 'people-outline'),
   },
   {
     id: 'diary',
     title: 'Diary',
     route: '/home/diary',
-    icon: (isActive) => (
-      <Ionicons
-        name={isActive ? 'book' : 'book-outline'}
-        size={22}
-        color={isActive ? '#0F172A' : '#64748B'}
-      />
-    ),
+    icon: renderIonicon('journal', 'journal-outline'),
   },
   {
     id: 'deals',
     title: 'Deals',
     route: '/home/deals',
-    icon: (isActive) => (
-      <FontAwesome5
-        name="dollar-sign"
-        size={22}
-        color={isActive ? '#0F172A' : '#64748B'}
-      />
-    ),
+    icon: renderIonicon('briefcase', 'briefcase-outline'),
   },
   {
     id: 'profile',
     title: 'Profile',
     route: '/home/profile',
-    icon: (isActive) => (
-      <Ionicons
-        name={isActive ? 'person' : 'person-outline'}
-        size={22}
-        color={isActive ? '#0F172A' : '#64748B'}
-      />
-    ),
+    icon: renderIonicon('person-circle', 'person-circle-outline'),
   },
 ];
 
@@ -82,9 +69,10 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
 }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: 12 + insets.bottom }]}>
       {items.map((item) => {
         const isActive = pathname === item.route || (item.route === '/home' && (pathname === '/home' || pathname === '/home/'));
         return (
@@ -94,7 +82,18 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
             onPress={() => router.replace(item.route as any)}
             activeOpacity={0.7}
           >
-            <View style={styles.iconWrapper}>{item.icon(isActive)}</View>
+            {isActive ? (
+              <LinearGradient
+                colors={Gradients.button.colors}
+                start={Gradients.button.start}
+                end={Gradients.button.end}
+                style={[styles.iconWrapper, styles.iconWrapperActive]}
+              >
+                {item.icon(isActive)}
+              </LinearGradient>
+            ) : (
+              <View style={styles.iconWrapper}>{item.icon(isActive)}</View>
+            )}
             <Text style={[styles.text, isActive && styles.activeText]}>
               {item.title}
             </Text>
@@ -110,30 +109,40 @@ export default NavigationBar;
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    backgroundColor: Colors.surface,
+    paddingTop: 10,
+    paddingBottom: 12,
+    paddingHorizontal: 12,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: Colors.border,
     justifyContent: 'space-around',
     alignItems: 'center',
+    boxShadow: '0px -4px 16px rgba(29, 78, 216, 0.06)',
   },
   button: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
+    paddingHorizontal: 6,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  text: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#64748B',
+    minWidth: 60,
   },
   iconWrapper: {
+    width: 44,
+    height: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 4,
   },
+  iconWrapperActive: {
+    boxShadow: '0px 4px 10px rgba(29, 78, 216, 0.3)',
+  },
+  text: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: Colors.text.disabled,
+  },
   activeText: {
-    color: '#0F172A',
+    color: Colors.primary,
     fontWeight: '700',
   },
 });

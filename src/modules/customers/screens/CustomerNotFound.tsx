@@ -1,13 +1,21 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Colors } from "@shared/constants";
+import { LinearGradient } from 'expo-linear-gradient';
+import { Colors, Gradients } from "@shared/constants";
 
 export const CustomerNotFound: React.FC = () => {
     return (
         <View style={styles.container}>
-            <View style={styles.iconContainer}>
-                <MaterialIcons name="search-off" color={Colors.semantic.info} size={36} />
+            <View style={styles.iconHalo}>
+                <LinearGradient
+                    colors={Gradients.button.colors}
+                    start={Gradients.button.start}
+                    end={Gradients.button.end}
+                    style={styles.iconContainer}
+                >
+                    <MaterialIcons name="search-off" color={Colors.text.inverse} size={34} />
+                </LinearGradient>
             </View>
             <View style={styles.textContainer}>
                 <Text style={styles.title}>Customer Not Found</Text>
@@ -21,17 +29,21 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         paddingTop: 96,
-        backgroundColor: '#F5F7FF',
+        backgroundColor: 'transparent',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         gap: 16,
     },
-    iconContainer: {
-        width: 72,
-        height: 72,
+    iconHalo: {
+        padding: 10,
         borderRadius: 36,
-        backgroundColor: Colors.semanticBg.info,
+        backgroundColor: Colors.primarySoft,
+    },
+    iconContainer: {
+        width: 76,
+        height: 76,
+        borderRadius: 26,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -44,8 +56,8 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 18,
-        fontWeight: '600',
-        color: Colors.primary,
+        fontWeight: '700',
+        color: Colors.text.primary,
         textAlign: 'center',
     },
     description: {

@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors } from '@shared/constants';
-import { getAvatarBackgroundColor } from '../constants/customer.constants';
 import { DetailHeader, Navigation } from '../components';
 import { 
   OverviewTabScreen, 
@@ -31,7 +30,6 @@ export const CustomerDetailScreen: React.FC = () => {
     }, [id, fetchCustomerDetail]);
 
     const customer = getCustomerById(id);
-    const avatarBg = getAvatarBackgroundColor(customer.name || customer.profileInitial);
 
     const handleTabPress = (index: number) => {
         setActiveTab(index);
@@ -57,12 +55,11 @@ export const CustomerDetailScreen: React.FC = () => {
     const handleScroll = handleScrollRef.current;
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['left', 'right']}>
             <StatusBar style="light" />
 
             <DetailHeader
                 {...customer}
-                avatarBackgroundColor={avatarBg}
                 onPress={() => router.back()}
             />
 

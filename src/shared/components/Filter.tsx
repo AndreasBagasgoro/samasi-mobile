@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   filterContainer: {
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: Colors.background2,
+    backgroundColor: Colors.surface,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -71,11 +71,12 @@ const styles = StyleSheet.create({
   selectedContainer: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+    boxShadow: '0px 4px 10px rgba(29, 78, 216, 0.25)',
   },
   filterText: {
     fontSize: 13,
     fontWeight: '500',
-    color: Colors.text.secondary,
+    color: Colors.text.label,
   },
   selectedText: {
     color: '#FFFFFF',
