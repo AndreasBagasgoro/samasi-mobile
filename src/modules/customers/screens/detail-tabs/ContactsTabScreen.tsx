@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors, Layout } from '@shared/constants';
 import { ContactCard } from '@shared/components';
 import { CustomerItem } from '../../types';
@@ -68,14 +68,14 @@ export const ContactsTabScreen: React.FC<ContactsTabProps> = ({ customer }) => {
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
-          colors={['#3d81c5']}
-          tintColor="#3d81c5"
+          colors={[Colors.primary]}
+          tintColor={Colors.primary}
         />
       }
     >
       {isLoading && !isRefreshing && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#3d81c5" />
+          <ActivityIndicator size="large" color={Colors.primary} />
           <Text style={styles.loadingText}>Memuat data kontak...</Text>
         </View>
       )}
@@ -90,7 +90,7 @@ export const ContactsTabScreen: React.FC<ContactsTabProps> = ({ customer }) => {
         <View style={styles.contactsList}>
           {renderedCustomerContactList}
           <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>
-            <Feather name="plus" size={14} color="#3B82F6" />
+            <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
             <Text style={styles.addButtonText}>Add Contact</Text>
           </TouchableOpacity>
         </View>
@@ -114,22 +114,22 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   addButton: {
-    backgroundColor: '#e0e9f7ff',
-    borderRadius: 14,
-    padding: 14,
-    borderColor: Colors.semantic.info,
-    borderWidth: 3,
-    borderStyle: 'dotted',
+    backgroundColor: Colors.primarySoft,
+    borderRadius: 18,
+    padding: 16,
+    borderColor: Colors.primaryLight,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
+    gap: 6,
     marginTop: 6,
   },
   addButtonText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: Colors.semantic.info,
+    color: Colors.primary,
   },
   loadingContainer: {
     paddingVertical: 32,

@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { Colors } from '@shared/constants';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors, Shadows } from '@shared/constants';
 import { DiaryItem } from '../types';
+import { getInteractionBadgeStyle } from '../utils/diary.utils';
 
 const formatEntryTime = (dateString?: string): string => {
     if (!dateString) return '';
@@ -18,37 +20,8 @@ const formatEntryTime = (dateString?: string): string => {
     }
 };
 
-const getInteractionBadgeStyle = (type?: string) => {
-    const normalized = (type || '').toLowerCase();
-
-    if (normalized.includes('call') || normalized.includes('telepon')) {
-        return {
-            bg: Colors.semanticBg.success, // #D1FAE5
-            text: '#15803D',
-        };
-    }
-    if (normalized.includes('meeting') || normalized.includes('visit') || normalized.includes('kunjungan')) {
-        return {
-            bg: Colors.semanticBg.info, // #DBEAFE
-            text: '#1D4ED8',
-        };
-    }
-    if (normalized.includes('email') || normalized.includes('surat')) {
-        return {
-            bg: '#F3E8FF', // Soft purple
-            text: '#7E22CE',
-        };
-    }
-
-    return {
-        bg: '#F1F5F9',
-        text: '#475569',
-    };
-};
-
 export const DiaryCard: React.FC<DiaryItem> = ({
     title,
-    customerName,
     interactionType,
     entryAt,
     contactName,
@@ -56,7 +29,7 @@ export const DiaryCard: React.FC<DiaryItem> = ({
     photos,
     onPress,
 }) => {
-    const displayTitle= title || 'No Title';
+    const displayTitle = title || 'No Title';
     const displayContact = contactName || '';
     const displayType = interactionType || 'Call';
     const displayTime = formatEntryTime(entryAt) || '10:15 AM';
@@ -66,34 +39,44 @@ export const DiaryCard: React.FC<DiaryItem> = ({
         <TouchableOpacity
             style={styles.cardContainer}
             onPress={onPress}
-            activeOpacity={0.7}
+            activeOpacity={0.75}
         >
+            <LinearGradient
+                colors={badgeStyle.gradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={styles.accentBar}
+            />
+
             <View style={styles.headerRow}>
                 <View style={styles.badgeAndTime}>
                     <View style={[styles.badge, { backgroundColor: badgeStyle.bg }]}>
+                        <Ionicons name={badgeStyle.icon} size={12} color={badgeStyle.text} />
                         <Text style={[styles.badgeText, { color: badgeStyle.text }]}>
                             {displayType}
                         </Text>
                     </View>
-                    <Text style={styles.timeText}>{displayTime}</Text>
+                    <View style={styles.timeRow}>
+                        <Ionicons name="time-outline" size={12} color={Colors.text.disabled} />
+                        <Text style={styles.timeText}>{displayTime}</Text>
+                    </View>
                 </View>
 
                 {photos && photos.length > 0 && (
                     <View style={styles.photoCountContainer}>
-                        <Feather name="image" size={14} color="#94A3B8" />
+                        <Ionicons name="images-outline" size={13} color={Colors.primary} />
                         <Text style={styles.photoCountText}>{photos.length}</Text>
                     </View>
                 )}
             </View>
 
-            <View style={styles.titleSection}>
-                <Text style={styles.title} numberOfLines={1}>
-                    {displayTitle}
-                </Text>
-            </View>
+            <Text style={styles.title} numberOfLines={1}>
+                {displayTitle}
+            </Text>
 
             {displayContact ? (
-                <View style={styles.customerNameSection}>
+                <View style={styles.contactRow}>
+                    <Ionicons name="person-circle-outline" size={14} color={Colors.text.secondary} />
                     <Text style={styles.customerName} numberOfLines={1}>
                         {displayContact}
                     </Text>
@@ -111,14 +94,23 @@ export const DiaryCard: React.FC<DiaryItem> = ({
 
 const styles = StyleSheet.create({
     cardContainer: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        padding: 16,
+        backgroundColor: Colors.surface,
+        borderRadius: 20,
+        paddingVertical: 16,
+        paddingRight: 16,
+        paddingLeft: 20,
         borderColor: Colors.border,
         borderWidth: 1,
-        boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.03)',
-        elevation: 1,
+        overflow: 'hidden',
         gap: 8,
+        ...Shadows.sm,
+    },
+    accentBar: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: 4,
     },
     headerRow: {
         flexDirection: 'row',
@@ -131,7 +123,10 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     badge: {
-        paddingHorizontal: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 20,
         alignSelf: 'flex-start',
@@ -140,42 +135,51 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
     },
+    timeRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
     timeText: {
-        fontSize: 13,
-        fontWeight: '400',
-        color: '#94A3B8',
+        fontSize: 12,
+        fontWeight: '500',
+        color: Colors.text.secondary,
     },
     photoCountContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
+        backgroundColor: Colors.primarySoft,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 10,
     },
     photoCountText: {
         fontSize: 12,
-        color: '#94A3B8',
-        fontWeight: '500',
-    },
-    titleSection: {
-        gap: 2,
+        color: Colors.primary,
+        fontWeight: '600',
     },
     title: {
         fontSize: 16,
         fontWeight: '700',
         color: Colors.text.primary,
     },
-    customerNameSection: {
-        gap: 2,
+    contactRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
     },
     customerName: {
+        flex: 1,
         fontSize: 13,
         fontWeight: '400',
         color: Colors.text.secondary,
     },
     notes: {
-        fontSize: 14,
+        fontSize: 13.5,
         fontWeight: '400',
-        color: '#334155',
+        color: Colors.text.label,
         lineHeight: 20,
-        marginTop: 4,
+        marginTop: 2,
     },
 });

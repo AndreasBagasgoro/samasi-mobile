@@ -56,7 +56,7 @@ export const CustomerScreen: React.FC = () => {
   }, [formattedCustomers, handleCustomerPress]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <StatusBar style="light" />
       <ScrollView
         style={styles.scrollContainer}
@@ -66,8 +66,8 @@ export const CustomerScreen: React.FC = () => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={refreshCustomers}
-            colors={['#3d81c5']}
-            tintColor="#3d81c5"
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
           />
         }
       >
@@ -81,7 +81,7 @@ export const CustomerScreen: React.FC = () => {
 
         {isLoading && !isRefreshing && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#3d81c5" />
+            <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={styles.loadingText}>Memuat data pelanggan...</Text>
           </View>
         )}
@@ -130,12 +130,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: 96,
   },
   contactCardContainer: {
     paddingHorizontal: Layout.screenPaddingHorizontal2,
     paddingTop: 16,
-    gap: 6,
+    gap: 10,
   },
   pagination: {
     marginHorizontal: Layout.screenPaddingHorizontal2,
@@ -148,20 +148,20 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 13,
-    color: '#64748B',
+    color: Colors.text.secondary,
   },
   errorContainer: {
     marginHorizontal: Layout.screenPaddingHorizontal2,
     marginVertical: 12,
     padding: 12,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 8,
+    backgroundColor: Colors.semanticBg.error,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: '#FCA5A5',
   },
   errorText: {
     fontSize: 13,
-    color: '#991B1B',
+    color: Colors.semantic.error,
     textAlign: 'center',
   },
 });

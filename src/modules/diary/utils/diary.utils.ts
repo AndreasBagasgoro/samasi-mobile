@@ -1,3 +1,4 @@
+import { getBlueGradient } from '@shared/constants';
 import { CoordinateValue } from '../types';
 
 export const formatDiaryDateTime = (dateString?: string): string => {
@@ -73,56 +74,59 @@ export const getInitials = (name?: string, fallback = 'DE'): string => {
   return (parts[0][0] + parts[1][0]).toUpperCase();
 };
 
-const AVATAR_PALETTE = [
-  '#0052CC', // Blue
-  '#0D9488', // Teal
-  '#4F46E5', // Indigo
-  '#2563EB', // Royal Blue
-  '#0284C7', // Sky
-  '#059669', // Emerald
-  '#7C3AED', // Violet
-];
+export const getAvatarColor = (name?: string): string => getBlueGradient(name || '')[1];
 
-export const getAvatarColor = (name?: string): string => {
-  if (!name) return '#0052CC';
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % AVATAR_PALETTE.length;
-  return AVATAR_PALETTE[index];
-};
+export const getAvatarGradient = (name?: string): [string, string] => getBlueGradient(name || '');
 
-export const getInteractionBadgeStyle = (type?: string) => {
+type InteractionIcon = 'location-outline' | 'call-outline' | 'mail-outline' | 'people-outline' | 'chatbubble-ellipses-outline';
+
+export interface InteractionBadgeStyle {
+  bg: string;
+  text: string;
+  icon: InteractionIcon;
+  gradient: [string, string];
+}
+
+export const getInteractionBadgeStyle = (type?: string): InteractionBadgeStyle => {
   const normalized = (type || '').toLowerCase();
 
   if (normalized.includes('visit') || normalized.includes('kunjungan')) {
     return {
-      bg: '#EBF5FF',
-      text: '#2563EB',
+      bg: '#E0EBFF',
+      text: '#1D4ED8',
+      icon: 'location-outline',
+      gradient: ['#3B82F6', '#1D4ED8'],
     };
   }
   if (normalized.includes('call') || normalized.includes('telepon')) {
     return {
-      bg: '#ECFDF5',
-      text: '#059669',
+      bg: '#E0F2FE',
+      text: '#0369A1',
+      icon: 'call-outline',
+      gradient: ['#38BDF8', '#0284C7'],
     };
   }
   if (normalized.includes('email') || normalized.includes('surat')) {
     return {
-      bg: '#F5F3FF',
-      text: '#7C3AED',
+      bg: '#E0E7FF',
+      text: '#4338CA',
+      icon: 'mail-outline',
+      gradient: ['#818CF8', '#4338CA'],
     };
   }
   if (normalized.includes('meeting') || normalized.includes('rapat')) {
     return {
-      bg: '#FFF7ED',
-      text: '#EA580C',
+      bg: '#CFFAFE',
+      text: '#0E7490',
+      icon: 'people-outline',
+      gradient: ['#22D3EE', '#0E7490'],
     };
   }
 
   return {
-    bg: '#F1F5F9',
-    text: '#475569',
+    bg: '#EAF0FA',
+    text: '#3D4F75',
+    icon: 'chatbubble-ellipses-outline',
+    gradient: ['#93C5FD', '#3B82F6'],
   };
 };

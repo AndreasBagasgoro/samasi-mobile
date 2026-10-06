@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { Colors } from '@shared/constants';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors, Gradients } from '@shared/constants';
 
 export interface DiaryDetailHeaderProps {
   title?: string;
@@ -14,16 +16,23 @@ export const DiaryDetailHeader: React.FC<DiaryDetailHeaderProps> = ({
   onBack,
   onOptionsPress,
 }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={Gradients.primary.colors}
+      start={Gradients.primary.start}
+      end={Gradients.primary.end}
+      style={[styles.container, { paddingTop: insets.top + 12 }]}
+    >
+      <View style={styles.decorCircle} />
       <TouchableOpacity
-        style={styles.backButton}
+        style={styles.glassButton}
         onPress={onBack}
         activeOpacity={0.7}
         accessibilityLabel="Back to Diary List"
       >
-        <Feather name="chevron-left" size={22} color="#0F172A" />
-        <Text style={styles.backText}>Back</Text>
+        <Ionicons name="chevron-back" size={20} color={Colors.text.inverse} />
       </TouchableOpacity>
 
       <View style={styles.titleContainer}>
@@ -33,40 +42,46 @@ export const DiaryDetailHeader: React.FC<DiaryDetailHeaderProps> = ({
       </View>
 
       <TouchableOpacity
-        style={styles.optionsButton}
+        style={styles.glassButton}
         onPress={onOptionsPress}
         activeOpacity={0.7}
         accessibilityLabel="More Options"
       >
-        <Feather name="more-horizontal" size={22} color="#0F172A" />
+        <Ionicons name="ellipsis-horizontal" size={18} color={Colors.text.inverse} />
       </TouchableOpacity>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    height: 70,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingBottom: 18,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: 'hidden',
   },
-  backButton: {
-    flexDirection: 'row',
+  decorCircle: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    top: -70,
+    right: -40,
+    backgroundColor: 'rgba(96, 165, 250, 0.12)',
+  },
+  glassButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: Colors.glass.background,
+    borderWidth: 1,
+    borderColor: Colors.glass.border,
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingRight: 8,
-    minWidth: 70,
-  },
-  backText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#0F172A',
-    marginLeft: 2,
+    justifyContent: 'center',
   },
   titleContainer: {
     flex: 1,
@@ -76,13 +91,6 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0F172A',
-  },
-  optionsButton: {
-    minWidth: 70,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingLeft: 8,
+    color: Colors.text.inverse,
   },
 });

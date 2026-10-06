@@ -9,14 +9,15 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { Colors } from '@shared/constants';
 import { DiaryPhotoItem } from '../types';
 
 export interface DiaryPhotoSectionProps {
   photos?: DiaryPhotoItem[];
 }
 
-const PASTEL_COLORS = ['#D1D5FA', '#C1DEFE', '#A7F3D0', '#FDE68A', '#FED7AA'];
+const PASTEL_COLORS = ['#DCE8FF', '#E0F2FE', '#E0E7FF', '#CFFAFE', '#EAF0FA'];
 
 export const DiaryPhotoSection: React.FC<DiaryPhotoSectionProps> = ({ photos }) => {
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -28,14 +29,20 @@ export const DiaryPhotoSection: React.FC<DiaryPhotoSectionProps> = ({ photos }) 
           placeholderBg: PASTEL_COLORS[idx % PASTEL_COLORS.length],
         }))
       : [
-          { sales_diary_photo_id: 'ph-1', placeholderBg: '#D1D5FA' },
-          { sales_diary_photo_id: 'ph-2', placeholderBg: '#C1DEFE' },
-          { sales_diary_photo_id: 'ph-3', placeholderBg: '#A7F3D0' },
+          { sales_diary_photo_id: 'ph-1', placeholderBg: PASTEL_COLORS[0] },
+          { sales_diary_photo_id: 'ph-2', placeholderBg: PASTEL_COLORS[1] },
+          { sales_diary_photo_id: 'ph-3', placeholderBg: PASTEL_COLORS[2] },
         ];
 
   return (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>PHOTOS</Text>
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionIcon}>
+          <Ionicons name="images-outline" size={15} color={Colors.primary} />
+        </View>
+        <Text style={styles.sectionTitle}>Photos</Text>
+        <Text style={styles.sectionCount}>{photos?.length ?? 0}</Text>
+      </View>
 
       <ScrollView
         horizontal
@@ -67,7 +74,7 @@ export const DiaryPhotoSection: React.FC<DiaryPhotoSectionProps> = ({ photos }) 
                 <View style={styles.photoPlaceholder}>
                   {/* Photo frame placeholder icon matching mockup */}
                   <View style={styles.iconWrapper}>
-                    <Feather name="image" size={28} color="#3B82F6" />
+                    <Ionicons name="image-outline" size={26} color={Colors.primaryLight} />
                   </View>
                 </View>
               )}
@@ -110,22 +117,46 @@ const styles = StyleSheet.create({
   sectionContainer: {
     marginVertical: 4,
   },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#64748B',
-    letterSpacing: 0.8,
-    marginBottom: 10,
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
     marginLeft: 2,
+  },
+  sectionIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    backgroundColor: Colors.primarySoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text.primary,
+  },
+  sectionCount: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.primary,
+    backgroundColor: Colors.primarySoft,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   photosRow: {
     flexDirection: 'row',
     gap: 12,
   },
   photoCard: {
-    width: 96,
-    height: 96,
-    borderRadius: 16,
+    width: 104,
+    height: 104,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
     overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
@@ -143,14 +174,14 @@ const styles = StyleSheet.create({
   iconWrapper: {
     width: 44,
     height: 44,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backgroundColor: 'rgba(7, 26, 61, 0.92)',
     justifyContent: 'center',
     alignItems: 'center',
   },

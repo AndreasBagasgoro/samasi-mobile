@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Input, Button } from '@shared/components';
-import { Colors, Layout } from '@shared/constants';
+import { Colors } from '@shared/constants';
 import { useLoginForm } from '../hooks';
 import { useAuth } from '../hooks';
-import { Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
 export const LoginForm = () => {
   const {
@@ -22,8 +22,16 @@ export const LoginForm = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.formHeading}>
+        <Text style={styles.formTitle}>Sign in</Text>
+        <Text style={styles.formSubtitle}>Use your company account credentials</Text>
+      </View>
+
       {storeError && (
-        <Text style={styles.errorText}>{storeError}</Text>
+        <View style={styles.errorBanner}>
+          <Ionicons name="alert-circle" size={18} color={Colors.semantic.error} />
+          <Text style={styles.errorText}>{storeError}</Text>
+        </View>
       )}
 
       <View>
@@ -38,6 +46,7 @@ export const LoginForm = () => {
           autoCapitalize="none"
           error={errors.username}
           inputContainerStyle={styles.inputContainerStyle}
+          leftIcon={<Ionicons name="person-outline" size={18} color={Colors.primaryLight} />}
         />
       </View>
 
@@ -53,23 +62,24 @@ export const LoginForm = () => {
           autoCapitalize="none"
           error={errors.password}
           inputContainerStyle={styles.inputContainerStyle}
+          leftIcon={<Ionicons name="lock-closed-outline" size={18} color={Colors.primaryLight} />}
           rightIcon={
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              <Feather
-                name={showPassword ? "eye-off" : "eye"}
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={20}
-                color="#333"
+                color={Colors.text.secondary}
               />
             </TouchableOpacity>
           }
         />
       </View>
 
-      <View>
+      <TouchableOpacity activeOpacity={0.7} style={styles.forgotPasswordButton}>
         <Text style={styles.forgotPassword}>
           Forgot Password?
         </Text>
-      </View>
+      </TouchableOpacity>
 
       <Button
         title="Login"
@@ -84,37 +94,61 @@ export const LoginForm = () => {
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    paddingHorizontal: Layout.containerPaddingHorizontal,
-    paddingVertical: 48,
+    paddingHorizontal: 22,
+    paddingTop: 28,
+    paddingBottom: 28,
+  },
+  formHeading: {
+    marginBottom: 24,
+    gap: 4,
+  },
+  formTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text.primary,
+  },
+  formSubtitle: {
+    fontSize: 13,
+    color: Colors.text.secondary,
   },
   submitButton: {
-    marginTop: 20,
-    borderRadius: 14,
-    paddingVertical: 12
+    marginTop: 24,
+    borderRadius: 16,
+    paddingVertical: 15,
   },
-  toggleText: {
-    color: Colors.primary,
-    fontSize: 12,
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.semanticBg.error,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
   },
   errorText: {
+    flex: 1,
+    fontSize: 13,
     color: Colors.semantic.error,
-    marginBottom: 16,
-    textAlign: 'center',
   },
   inputContainerStyle: {
-    borderRadius: 12,
+    borderRadius: 14,
+    backgroundColor: Colors.background,
   },
   fieldTitle: {
-    fontSize: 12,
-    color: Colors.text.secondary,
-    fontWeight: '600',
+    fontSize: 11,
+    color: Colors.text.label,
+    fontWeight: '700',
+    letterSpacing: 0.8,
     marginBottom: 8,
     marginLeft: 4,
   },
-  forgotPassword: {
-    fontSize: 12,
-    color: Colors.text.secondary,
-    fontWeight: '600',
+  forgotPasswordButton: {
     alignSelf: 'flex-end',
-  }
+  },
+  forgotPassword: {
+    fontSize: 13,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
 });

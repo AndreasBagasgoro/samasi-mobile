@@ -1,4 +1,5 @@
 import { FilterItem, CustomerItem } from "../types";
+import { getBlueGradient } from "@shared/constants";
 
 export const FILTER_ITEMS: FilterItem[] = [
   {
@@ -33,27 +34,10 @@ export const FILTER_ITEMS: FilterItem[] = [
   },
 ];
 
-// Palet warna background tegas / tidak pudar (Vibrant Solid Colors)
-export const VIBRANT_AVATAR_COLORS = [
-  '#3B82F6', // Blue
-  '#10B981', // Emerald Green
-  '#F59E0B', // Amber / Warm Orange
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#6366F1', // Indigo
-  '#EF4444', // Red
-  '#14B8A6', // Teal
-  '#06B6D4', // Cyan
-];
+// Palet avatar bernuansa biru (selaras dengan tema gradient aplikasi)
+export const getAvatarGradient = (str: string = ''): [string, string] => getBlueGradient(str);
 
-export const getAvatarBackgroundColor = (str: string = '') => {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % VIBRANT_AVATAR_COLORS.length;
-  return VIBRANT_AVATAR_COLORS[index];
-};
+export const getAvatarBackgroundColor = (str: string = '') => getAvatarGradient(str)[1];
 
 export const CUSTOMER_ITEMS: CustomerItem[] = [
   {

@@ -1,46 +1,57 @@
 import React from 'react';
 import { Text, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Colors } from '@shared/constants';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors, Shadows } from '@shared/constants';
 import { CustomerItem } from '../types';
-import { Feather } from '@expo/vector-icons';
-import { getAvatarBackgroundColor } from '../constants/customer.constants';
+import { getAvatarGradient } from '../constants/customer.constants';
 
 export const CustomerCard: React.FC<CustomerItem> = ({
     profileInitial,
     name,
     customerType,
-    totalContacts,
     lastActive,
-    avatarBackgroundColor,
     onPress,
 }) => {
-    // Menghasilkan warna background tegas (tidak pudar) secara acak-deterministik
-    const bg = avatarBackgroundColor || getAvatarBackgroundColor(name || profileInitial);
+    // Gradient avatar biru yang deterministik berdasarkan nama
+    const avatarGradient = getAvatarGradient(name || profileInitial);
 
     return (
         <TouchableOpacity
             style={styles.cardContainer}
             onPress={onPress}
-            activeOpacity={0.7}
+            activeOpacity={0.75}
         >
-            <View style={[styles.profileContainer, { backgroundColor: bg }]}>
+            <LinearGradient
+                colors={avatarGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.profileContainer}
+            >
                 <Text style={styles.profileText}>
                     {profileInitial}
                 </Text>
-            </View>
+            </LinearGradient>
 
             <View style={styles.contactInfoContainer}>
-                <Text style={styles.name}>{name}</Text>
+                <Text style={styles.name} numberOfLines={1}>{name}</Text>
                 <View style={styles.detailsRow}>
-                    <Text style={styles.customerType}>{customerType}</Text>
-                    <Text style={styles.dot}>·</Text>
-                    {/* <Text style={styles.totalContacts}>{totalContacts} Contacts</Text> */}
+                    {customerType ? (
+                        <View style={styles.typeBadge}>
+                            <Text style={styles.customerType}>{customerType}</Text>
+                        </View>
+                    ) : null}
+                    {lastActive ? (
+                        <View style={styles.lastActiveRow}>
+                            <Ionicons name="time-outline" size={12} color={Colors.text.disabled} />
+                            <Text style={styles.lastActive}>{lastActive}</Text>
+                        </View>
+                    ) : null}
                 </View>
-                <Text style={styles.lastActive}>{lastActive}</Text>
             </View>
 
             <View style={styles.arrowContainer}>
-                <Feather name="chevron-right" size={18} color={Colors.text.disabled} />
+                <Ionicons name="chevron-forward" size={16} color={Colors.primary} />
             </View>
         </TouchableOpacity>
     );
@@ -48,64 +59,72 @@ export const CustomerCard: React.FC<CustomerItem> = ({
 
 const styles = StyleSheet.create({
     cardContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
+        backgroundColor: Colors.surface,
+        borderRadius: 20,
+        padding: 14,
         alignItems: 'center',
         justifyContent: 'space-between',
         borderColor: Colors.border,
         borderWidth: 1,
-        gap: 12,
+        gap: 14,
         flexDirection: 'row',
+        ...Shadows.sm,
     },
     profileContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 48,
+        height: 48,
+        borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
     },
     profileText: {
         fontWeight: '700',
-        fontSize: 15,
-        color: '#FFFFFF', 
+        fontSize: 16,
+        color: '#FFFFFF',
+        letterSpacing: 0.5,
     },
     contactInfoContainer: {
         flex: 1,
-        gap: 4,
+        gap: 6,
     },
     detailsRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
+        flexWrap: 'wrap',
+        gap: 8,
     },
     name: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '700',
         color: Colors.text.primary,
     },
+    typeBadge: {
+        backgroundColor: Colors.primarySoft,
+        borderRadius: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+    },
     customerType: {
-        fontSize: 12,
-        fontWeight: '400',
-        color: Colors.text.secondary,
+        fontSize: 11,
+        fontWeight: '600',
+        color: Colors.primary,
     },
-    dot: {
-        color: Colors.text.secondary,
-        fontSize: 12,
-    },
-    totalContacts: {
-        fontSize: 12,
-        fontWeight: '400',
-        color: Colors.text.secondary,
+    lastActiveRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
     },
     lastActive: {
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: '400',
         color: Colors.text.secondary,
     },
     arrowContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 10,
+        backgroundColor: Colors.primarySoft,
         justifyContent: 'center',
         alignItems: 'center',
-        marginLeft: 'auto',
     },
 });
