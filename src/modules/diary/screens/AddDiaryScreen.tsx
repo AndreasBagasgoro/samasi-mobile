@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { FormHeader } from '@shared/components';
 import { Colors } from '@shared/constants';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { DiaryForm, DiaryFormData } from '../components/DiaryForm';
 import { DiarySaveResult } from '../components/DiarySaveResult';
 import { useDiary } from '../hooks';
@@ -25,6 +25,11 @@ interface SaveResult {
 
 export const AddDiaryScreen: React.FC = () => {
   const router = useRouter();
+  // Prefill customer & kontak jika dibuka dari halaman detail kontak
+  const { customer_id, customer_contact_id } = useLocalSearchParams<{
+    customer_id?: string;
+    customer_contact_id?: string;
+  }>();
   const { createDiary, isLoading } = useDiary({ autoFetch: false });
   const { formattedCustomers } = useCustomers({ autoFetch: false });
 
@@ -32,8 +37,8 @@ export const AddDiaryScreen: React.FC = () => {
   const [saveResult, setSaveResult] = useState<SaveResult>({ status: 'idle' });
   const [formData, setFormData] = useState<DiaryFormData>({
     title: '',
-    customer_id: '',
-    customer_contact_id: '',
+    customer_id: customer_id || '',
+    customer_contact_id: customer_contact_id || '',
     interaction_type: 'VISIT',
     interaction_type_id: '1',
     notes: '',

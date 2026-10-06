@@ -57,10 +57,10 @@ export const defaultNavigationItems: NavigationMenuItem[] = [
     icon: renderIonicon('briefcase', 'briefcase-outline'),
   },
   {
-    id: 'profile',
-    title: 'Profile',
-    route: '/home/profile',
-    icon: renderIonicon('person-circle', 'person-circle-outline'),
+    id: 'contacts',
+    title: 'Contacts',
+    route: '/home/customer-contacts',
+    icon: renderIonicon('call', 'call-outline'),
   },
 ];
 
