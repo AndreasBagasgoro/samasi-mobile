@@ -2,12 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '@modules/auth';
 import { HomeHeader, QuickAction, Reminder } from '../components';
 import { Colors } from '@shared/constants';
 import { QUICK_ACTION_ITEMS, REMINDER_ITEMS } from '../constants/home.constants';
 
 export const HomeScreen: React.FC = () => {
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const displayName = user?.name || user?.full_name || undefined;
 
@@ -19,7 +21,7 @@ export const HomeScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <HomeHeader user={displayName} />
+        <HomeHeader user={displayName} onPressProfile={() => router.push('/home/profile')} />
         <View style={styles.content}>
           <View style={styles.sectionHeader}>
             <Text style={styles.title}>Quick Actions</Text>

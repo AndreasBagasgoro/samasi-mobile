@@ -1,2 +1,5 @@
-// Export shared utility functions here
-// e.g., export * from './date.utils';
+/** Ambil inisial (maks. 2 huruf) dari sebuah nama, mis. "Alex Morgan" -> "AM" */
+export const getInitials = (name?: string): string => {
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
+};
