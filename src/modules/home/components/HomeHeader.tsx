@@ -5,12 +5,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MainCard } from '@shared/components/MainCard';
 import { Colors, Gradients } from '@shared/constants';
+import { getInitials } from '@shared/utils';
 
 interface HomeHeaderProps {
     greet?: string;
     user?: string;
     title?: string;
     onPressNotification?: () => void;
+    onPressProfile?: () => void;
 }
 
 const getGreeting = () => {
@@ -21,16 +23,12 @@ const getGreeting = () => {
     return 'Good Night';
 };
 
-const getInitials = (name: string) => {
-    const parts = name.trim().split(/\s+/);
-    return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || 'U';
-};
-
 export const HomeHeader: React.FC<HomeHeaderProps> = ({
     greet = getGreeting(),
     user = 'Andreas',
     title = 'NCS Freight · Singapore',
     onPressNotification,
+    onPressProfile,
 }) => {
     const insets = useSafeAreaInsets();
 
@@ -46,9 +44,14 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
 
             <View style={styles.head}>
                 <View style={styles.profileRow}>
-                    <View style={styles.avatar}>
+                    <TouchableOpacity
+                        style={styles.avatar}
+                        onPress={onPressProfile}
+                        activeOpacity={0.8}
+                        disabled={!onPressProfile}
+                    >
                         <Text style={styles.avatarText}>{getInitials(user)}</Text>
-                    </View>
+                    </TouchableOpacity>
                     <View style={styles.headInfo}>
                         <Text style={styles.greet}>{greet}</Text>
                         <Text style={styles.user} numberOfLines={1}>{user}</Text>
@@ -132,7 +135,7 @@ const styles = StyleSheet.create({
     avatar: {
         width: 48,
         height: 48,
-        borderRadius: 16,
+        borderRadius: 24,
         backgroundColor: Colors.glass.strong,
         borderWidth: 1,
         borderColor: Colors.glass.border,
