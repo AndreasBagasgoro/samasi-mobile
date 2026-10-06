@@ -34,6 +34,8 @@ export interface DiaryFormData {
   latitude?: number;
   longitude?: number;
   location_name?: string;
+  captured_at?: string;
+  geocoded_at?: string;
   photos: string[];
 }
 
@@ -102,6 +104,13 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
     height: 600,
   });
   const [watermarkImageReady, setWatermarkImageReady] = useState(false);
+  const watermarkStyles = useMemo(
+    () =>
+      getNativeWatermarkStyles(
+        Math.max(1, Math.min(watermarkImageSize.width, watermarkImageSize.height) / 650)
+      ),
+    [watermarkImageSize.width, watermarkImageSize.height]
+  );
 
   const captureNativeWatermark = (options: NativeWatermarkRequest): Promise<string> => {
     if (Platform.OS === 'web') {
@@ -125,6 +134,9 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
         const uri = await captureRef(watermarkViewRef, {
           format: 'jpg',
           quality: 0.92,
+          // Paksa output seukuran piksel foto (tanpa ini view-shot mengalikan dengan pixel ratio layar)
+          width: watermarkImageSize.width,
+          height: watermarkImageSize.height,
           result: 'tmpfile',
         });
         watermarkResolverRef.current?.resolve(uri);
@@ -138,7 +150,7 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
     };
 
     capture();
-  }, [nativeWatermarkRequest, watermarkImageReady]);
+  }, [nativeWatermarkRequest, watermarkImageReady, watermarkImageSize]);
 
   useEffect(() => {
     if (!formData.customer_id) {
@@ -259,6 +271,8 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
           latitude: result.latitude,
           longitude: result.longitude,
           location_name: result.locationName,
+          captured_at: result.capturedAt.toISOString(),
+          geocoded_at: result.capturedAt.toISOString(),
         }));
       }
     } catch (err: any) {
@@ -288,6 +302,8 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
           latitude: result.latitude,
           longitude: result.longitude,
           location_name: result.locationName,
+          captured_at: result.capturedAt.toISOString(),
+          geocoded_at: result.capturedAt.toISOString(),
         }));
       }
     } catch (err: any) {
@@ -376,21 +392,21 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
               setNativeWatermarkRequest(null);
             }}
           />
-          <View style={styles.nativeWatermarkCard}>
-            <Text style={styles.nativeWatermarkCompany}>
+          <View style={watermarkStyles.card}>
+            <Text style={watermarkStyles.company}>
               {(nativeWatermarkRequest.companyTag || 'PT SAMASI • SALES TRACKER').toUpperCase()}
             </Text>
-            <Text style={styles.nativeWatermarkCoordinates}>
+            <Text style={watermarkStyles.coordinates}>
               GPS {Math.abs(nativeWatermarkRequest.latitude).toFixed(6)}°{' '}
               {nativeWatermarkRequest.latitude >= 0 ? 'N' : 'S'}, {Math.abs(nativeWatermarkRequest.longitude).toFixed(6)}°{' '}
               {nativeWatermarkRequest.longitude >= 0 ? 'E' : 'W'}
             </Text>
             {!!nativeWatermarkRequest.locationName && (
-              <Text style={styles.nativeWatermarkLocation} numberOfLines={1}>
+              <Text style={watermarkStyles.location} numberOfLines={1}>
                 {nativeWatermarkRequest.locationName}
               </Text>
             )}
-            <Text style={styles.nativeWatermarkTime}>
+            <Text style={watermarkStyles.time}>
               {formatWatermarkDateTime(nativeWatermarkRequest.capturedAt || new Date())}
             </Text>
           </View>
@@ -519,7 +535,7 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
           <Text style={styles.locationSubtitle}>
             {formData.latitude?.toFixed(4) || '1.3521'}° N,{' '}
             {formData.longitude?.toFixed(4) || '103.8198'}° E ·{' '}
-            {formData.location_name || 'Raffles Place'}
+            {formData.location_name || ''}
           </Text>
         </View>
 
@@ -1082,39 +1098,51 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  nativeWatermarkCard: {
-    position: 'absolute',
-    left: 18,
-    right: 18,
-    bottom: 18,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    backgroundColor: 'rgba(10, 22, 40, 0.90)',
-    borderRadius: 12,
-    borderLeftWidth: 6,
-    borderLeftColor: '#1666a3',
-  },
-  nativeWatermarkCompany: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#60A5FA',
-    marginBottom: 8,
-  },
-  nativeWatermarkCoordinates: {
-    fontSize: 21,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    marginBottom: 6,
-  },
-  nativeWatermarkLocation: {
-    fontSize: 17,
-    color: '#E2E8F0',
-    marginBottom: 6,
-  },
-  nativeWatermarkTime: {
-    fontSize: 16,
-    color: '#CBD5E1',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-  },
 });
+
+/**
+ * Style kartu watermark native. View capture berukuran sama dengan piksel foto asli,
+ * jadi semua ukuran dikalikan `scale` (sama dengan rumus di jalur web pada
+ * diaryWatermark.ts: max(1, sisi terpendek / 650)) agar proporsinya konsisten.
+ */
+const getNativeWatermarkStyles = (scale: number) => {
+  const s = (value: number) => Math.round(value * scale);
+
+  return StyleSheet.create({
+    card: {
+      position: 'absolute',
+      left: s(14),
+      right: s(14),
+      bottom: s(14),
+      paddingVertical: s(14),
+      paddingHorizontal: s(16),
+      backgroundColor: 'rgba(10, 22, 40, 0.90)',
+      borderRadius: s(12),
+      borderLeftWidth: s(6),
+      borderLeftColor: '#16A34A',
+    },
+    company: {
+      fontSize: s(21),
+      fontWeight: '800',
+      color: '#60A5FA',
+      marginBottom: s(8),
+    },
+    coordinates: {
+      fontSize: s(25),
+      fontWeight: '800',
+      color: '#FFFFFF',
+      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+      marginBottom: s(6),
+    },
+    location: {
+      fontSize: s(20),
+      color: '#E2E8F0',
+      marginBottom: s(6),
+    },
+    time: {
+      fontSize: s(19),
+      color: '#CBD5E1',
+      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    },
+  });
+};

@@ -160,6 +160,9 @@ export interface DiaryPhotoItem {
   photo_object_key?: string | null;
   photo_file_name?: string | null;
   caption?: string | null;
+  captured_at?: string | null;
+  location_name?: string | null;
+  geocoded_at?: string | null;
   [key: string]: any;
 }
 

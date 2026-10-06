@@ -8,6 +8,10 @@ export interface CapturedWatermarkPhoto {
   longitude: number;
   locationName: string;
   capturedAt: Date;
+  /** Akurasi GPS dalam meter (dari pos.coords.accuracy) */
+  accuracy: number | null;
+  /** Apakah lokasi berasal dari mock/fake GPS (dari pos.mocked) */
+  isMocked: boolean;
 }
 
 export interface WatermarkOptions {
@@ -20,11 +24,19 @@ export interface WatermarkOptions {
   captureNativeView?: (options: WatermarkOptions) => Promise<string>;
 }
 
+export interface GPSLocationResult {
+  latitude: number;
+  longitude: number;
+  locationName: string;
+  accuracy: number | null;
+  isMocked: boolean;
+}
+
 export const getCurrentGPSLocation = async (fallback?: {
   latitude?: number;
   longitude?: number;
   locationName?: string;
-}): Promise<{ latitude: number; longitude: number; locationName: string }> => {
+}): Promise<GPSLocationResult> => {
   try {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
@@ -32,55 +44,87 @@ export const getCurrentGPSLocation = async (fallback?: {
         latitude: fallback?.latitude ?? 1.3521,
         longitude: fallback?.longitude ?? 103.8198,
         locationName: fallback?.locationName ?? 'Lokasi GPS (Default)',
+        accuracy: null,
+        isMocked: false,
       };
     }
 
     const location = await Location.getCurrentPositionAsync({
       accuracy: Location.Accuracy.Balanced,
     });
+    console.log(`[GPS] Raw location object:`, JSON.stringify(location));
 
     const lat = location.coords.latitude;
     const lng = location.coords.longitude;
-    let locationName = fallback?.locationName || '';
+    const accuracy = location.coords.accuracy ?? null;
+    const isMocked = (location as any).mocked === true;
 
-    try {
-      const places = await Location.reverseGeocodeAsync({
-        latitude: lat,
-        longitude: lng,
-      });
-
-      if (places && places.length > 0) {
-        const place = places[0];
-        const parts = [
-          place.name || place.street,
-          place.subregion || place.city || place.district,
-          place.region,
-        ].filter(Boolean);
-
-        if (parts.length > 0) {
-          locationName = parts.join(', ');
-        }
-      }
-    } catch {
-      // Reverse geocoding optional, jika gagal tetap gunakan koordinat
-    }
-
-    if (!locationName) {
-      locationName = `${lat.toFixed(4)}°, ${lng.toFixed(4)}°`;
-    }
+    const locationName = await reverseGeocodeCoordinates(lat, lng, fallback?.locationName);
 
     return {
       latitude: lat,
       longitude: lng,
       locationName,
+      accuracy,
+      isMocked,
     };
   } catch {
     return {
       latitude: fallback?.latitude ?? 1.3521,
       longitude: fallback?.longitude ?? 103.8198,
       locationName: fallback?.locationName ?? 'Lokasi GPS',
+      accuracy: null,
+      isMocked: false,
     };
   }
+};
+
+/**
+ * Melakukan reverse geocoding dari koordinat (latitude, longitude) yang sudah dimiliki.
+ * Berguna saat koordinat sudah tersedia (mis. dari foto yang sudah diambil) dan hanya
+ * perlu mendapatkan nama lokasi tanpa perlu mengambil posisi GPS baru.
+ *
+ * @param latitude  - Nilai latitude
+ * @param longitude - Nilai longitude
+ * @param fallbackName - Nama lokasi fallback jika reverse geocoding gagal
+ * @returns Nama lokasi hasil reverse geocoding, atau koordinat sebagai string jika gagal
+ */
+export const reverseGeocodeCoordinates = async (
+  latitude: number,
+  longitude: number,
+  fallbackName?: string
+): Promise<string> => {
+  try {
+    console.log(`[Geocoding] Starting reverse geocode for lat: ${latitude}, lng: ${longitude}`);
+    const places = await Location.reverseGeocodeAsync({ latitude, longitude });
+    console.log(`[Geocoding] Result from reverseGeocodeAsync:`, JSON.stringify(places));
+
+    if (places && places.length > 0) {
+      const place = places[0];
+      const parts = [
+        place.name || place.street,
+        place.subregion || place.city || place.district,
+        place.region,
+      ].filter(Boolean) as string[];
+
+      if (parts.length > 0) {
+        const resolvedName = parts.join(', ');
+        console.log(`[Geocoding] Resolved location name:`, resolvedName);
+        return resolvedName;
+      } else {
+        console.log(`[Geocoding] places array is valid but parts are empty. Place obj:`, JSON.stringify(place));
+      }
+    } else {
+      console.log(`[Geocoding] places array is empty or null`);
+    }
+  } catch (error: any) {
+    console.log(`[Geocoding] Error during reverseGeocodeAsync:`, error.message || error);
+    // Reverse geocoding optional, tetap lanjutkan dengan fallback
+  }
+
+  const finalName = fallbackName || `${latitude.toFixed(4)}°, ${longitude.toFixed(4)}°`;
+  console.log(`[Geocoding] Returning fallback location name:`, finalName);
+  return finalName;
 };
 
 
@@ -283,6 +327,8 @@ export const takeSelfieWithWatermark = async (fallbackCoords?: {
     longitude: gpsLocation.longitude,
     locationName: gpsLocation.locationName,
     capturedAt: captureTime,
+    accuracy: gpsLocation.accuracy,
+    isMocked: gpsLocation.isMocked,
   };
 };
 
@@ -328,6 +374,8 @@ export const pickImageFromGalleryWithWatermark = async (fallbackCoords?: {
     longitude: gpsLocation.longitude,
     locationName: gpsLocation.locationName,
     capturedAt: captureTime,
+    accuracy: gpsLocation.accuracy,
+    isMocked: gpsLocation.isMocked,
   };
 };
 

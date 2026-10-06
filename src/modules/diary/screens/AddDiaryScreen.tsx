@@ -39,7 +39,9 @@ export const AddDiaryScreen: React.FC = () => {
     notes: '',
     latitude: 1.3521,
     longitude: 103.8198,
-    location_name: 'Raffles Place',
+    location_name: '',
+    captured_at: undefined,
+    geocoded_at: undefined,
     photos: [],
   });
 
@@ -121,6 +123,9 @@ export const AddDiaryScreen: React.FC = () => {
               caption: `Selfie & Evidence for ${customerName}`,
               latitude: formData.latitude ?? 1.3521,
               longitude: formData.longitude ?? 103.8198,
+              captured_at: formData.captured_at,
+              location_name: formData.location_name,
+              geocoded_at: formData.geocoded_at,
             }
           );
         } catch (uploadErr) {
@@ -159,7 +164,9 @@ export const AddDiaryScreen: React.FC = () => {
       notes: '',
       latitude: 1.3521,
       longitude: 103.8198,
-      location_name: 'Raffles Place',
+      location_name: '',
+      captured_at: undefined,
+      geocoded_at: undefined,
       photos: [],
     });
     setErrors({});
