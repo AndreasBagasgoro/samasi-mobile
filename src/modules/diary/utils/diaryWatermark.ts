@@ -8,9 +8,7 @@ export interface CapturedWatermarkPhoto {
   longitude: number;
   locationName: string;
   capturedAt: Date;
-  /** Akurasi GPS dalam meter (dari pos.coords.accuracy) */
   accuracy: number | null;
-  /** Apakah lokasi berasal dari mock/fake GPS (dari pos.mocked) */
   isMocked: boolean;
 }
 
@@ -21,8 +19,53 @@ export interface WatermarkOptions {
   locationName?: string;
   capturedAt?: Date;
   companyTag?: string;
+  accuracy?: number | null;
+  isMocked?: boolean;
   captureNativeView?: (options: WatermarkOptions) => Promise<string>;
 }
+
+export type WatermarkLocationStatusType = 'verified' | 'mocked' | 'unverified';
+
+export interface WatermarkLocationStatus {
+  status: WatermarkLocationStatusType;
+  label: string;
+  color: string;
+  background: string;
+  accent: string;
+}
+
+export const getWatermarkLocationStatus = (
+  isMocked?: boolean,
+  accuracy?: number | null
+): WatermarkLocationStatus => {
+  if (isMocked) {
+    return {
+      status: 'mocked',
+      label: '⚠ FAKE GPS TERDETEKSI',
+      color: '#FFFFFF',
+      background: '#DC2626',
+      accent: '#DC2626',
+    };
+  }
+
+  if (accuracy === null || accuracy === undefined) {
+    return {
+      status: 'unverified',
+      label: 'GPS TIDAK TERVERIFIKASI',
+      color: '#1F2937',
+      background: '#F59E0B',
+      accent: '#F59E0B',
+    };
+  }
+
+  return {
+    status: 'verified',
+    label: `✓ GPS ASLI ±${Math.round(accuracy)} m`,
+    color: '#FFFFFF',
+    background: '#16A34A',
+    accent: '#16A34A',
+  };
+};
 
 export interface GPSLocationResult {
   latitude: number;
@@ -154,8 +197,11 @@ export const applyWatermarkToImage = async (
     locationName = '',
     capturedAt = new Date(),
     companyTag = 'PT SAMASI • SALES TRACKER',
+    accuracy = null,
+    isMocked = false,
     captureNativeView,
   } = options;
+  const locationStatus = getWatermarkLocationStatus(isMocked, accuracy);
 
   if (Platform.OS === 'web' && typeof document !== 'undefined') {
     return new Promise((resolve) => {
@@ -191,23 +237,50 @@ export const applyWatermarkToImage = async (
           const cardWidth = width - padding * 2;
           const cardX = padding;
           const cardY = height - cardHeight - padding;
-          const borderRadius = Math.round(12 * scale);
 
+          // Latar tipis hanya di area kartu agar teks terbaca, foto tetap terang
           ctx.save();
-          ctx.fillStyle = 'rgba(10, 22, 40, 0.88)';
+          ctx.fillStyle = 'rgba(10, 22, 40, 0.45)';
           ctx.beginPath();
           if (typeof ctx.roundRect === 'function') {
-            ctx.roundRect(cardX, cardY, cardWidth, cardHeight, borderRadius);
+            ctx.roundRect(cardX, cardY, cardWidth, cardHeight, Math.round(12 * scale));
           } else {
             ctx.rect(cardX, cardY, cardWidth, cardHeight);
           }
           ctx.fill();
 
-          ctx.fillStyle = '#16A34A';
+          ctx.fillStyle = locationStatus.accent;
           ctx.fillRect(cardX, cardY, Math.round(6 * scale), cardHeight);
+
+          // Badge status lokasi (Asli / Fake GPS / Tidak Terverifikasi) di pojok kanan atas kartu
+          const badgeFontSize = Math.max(16, Math.round(17 * scale));
+          ctx.font = `bold ${badgeFontSize}px sans-serif`;
+          const badgePadX = Math.round(10 * scale);
+          const badgeHeight = badgeFontSize + Math.round(12 * scale);
+          const badgeWidth = ctx.measureText(locationStatus.label).width + badgePadX * 2;
+          const badgeX = cardX + cardWidth - badgeWidth - Math.round(14 * scale);
+          const badgeY = cardY + Math.round(14 * scale);
+          ctx.fillStyle = locationStatus.background;
+          ctx.beginPath();
+          if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(badgeX, badgeY, badgeWidth, badgeHeight, Math.round(8 * scale));
+          } else {
+            ctx.rect(badgeX, badgeY, badgeWidth, badgeHeight);
+          }
+          ctx.fill();
+          ctx.fillStyle = locationStatus.color;
+          ctx.textBaseline = 'middle';
+          ctx.fillText(locationStatus.label, badgeX + badgePadX, badgeY + badgeHeight / 2);
+          ctx.textBaseline = 'alphabetic';
 
           const textStartX = cardX + Math.round(16 * scale);
           let currentY = cardY + Math.round(36 * scale);
+
+          // Bayangan teks agar tetap terbaca di atas foto terang
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.85)';
+          ctx.shadowBlur = Math.round(4 * scale);
+          ctx.shadowOffsetX = Math.round(1 * scale);
+          ctx.shadowOffsetY = Math.round(1 * scale);
 
           // Baris 1: Header / Tag Perusahaan + GPS Verified
           const tagFontSize = Math.max(20, Math.round(21 * scale));
@@ -242,7 +315,7 @@ export const applyWatermarkToImage = async (
           currentY += Math.round(30 * scale);
           const timeFontSize = Math.max(18, Math.round(19 * scale));
           ctx.font = `500 ${timeFontSize}px monospace, sans-serif`;
-          ctx.fillStyle = '#94A3B8';
+          ctx.fillStyle = '#F1F5F9';
           ctx.fillText(`🕒 ${formatWatermarkDateTime(capturedAt)}`, textStartX, currentY);
 
           ctx.restore();
@@ -273,6 +346,8 @@ export const applyWatermarkToImage = async (
       locationName,
       capturedAt,
       companyTag,
+      accuracy,
+      isMocked,
     });
   }
 
@@ -318,6 +393,8 @@ export const takeSelfieWithWatermark = async (fallbackCoords?: {
     longitude: gpsLocation.longitude,
     locationName: gpsLocation.locationName,
     capturedAt: captureTime,
+    accuracy: gpsLocation.accuracy,
+    isMocked: gpsLocation.isMocked,
     captureNativeView,
   });
 
@@ -365,6 +442,8 @@ export const pickImageFromGalleryWithWatermark = async (fallbackCoords?: {
     longitude: gpsLocation.longitude,
     locationName: gpsLocation.locationName,
     capturedAt: captureTime,
+    accuracy: gpsLocation.accuracy,
+    isMocked: gpsLocation.isMocked,
     captureNativeView,
   });
 

@@ -43,6 +43,7 @@ export const AddDiaryScreen: React.FC = () => {
     captured_at: undefined,
     geocoded_at: undefined,
     photos: [],
+    photo_metadata: {},
   });
 
   const selectedCustomer = formattedCustomers.find(
@@ -113,23 +114,25 @@ export const AddDiaryScreen: React.FC = () => {
           ''
       );
 
-      // Upload local watermarked photos jika ada
+      // Upload local watermarked photos satu per satu agar metadata lokasi
+      // (termasuk accuracy & is_mocked) tersimpan per foto
       if (diaryId && localWatermarkedPhotos.length > 0) {
-        try {
-          await diaryService.uploadDiaryPhotos(
-            diaryId,
-            localWatermarkedPhotos,
-            {
+        for (const photoUri of localWatermarkedPhotos) {
+          const meta = formData.photo_metadata?.[photoUri];
+          try {
+            await diaryService.uploadDiaryPhotos(diaryId, [photoUri], {
               caption: `Selfie & Evidence for ${customerName}`,
-              latitude: formData.latitude ?? 1.3521,
-              longitude: formData.longitude ?? 103.8198,
-              captured_at: formData.captured_at,
-              location_name: formData.location_name,
-              geocoded_at: formData.geocoded_at,
-            }
-          );
-        } catch (uploadErr) {
-          console.warn('Gagal mengunggah foto selfie ke server:', uploadErr);
+              latitude: meta?.latitude ?? formData.latitude ?? 1.3521,
+              longitude: meta?.longitude ?? formData.longitude ?? 103.8198,
+              captured_at: meta?.captured_at ?? formData.captured_at,
+              location_name: meta?.location_name ?? formData.location_name,
+              geocoded_at: meta?.geocoded_at ?? formData.geocoded_at,
+              accuracy: meta?.accuracy ?? null,
+              is_mocked: meta?.is_mocked ?? false,
+            });
+          } catch (uploadErr) {
+            console.warn('Gagal mengunggah foto selfie ke server:', uploadErr);
+          }
         }
       }
 
@@ -168,6 +171,7 @@ export const AddDiaryScreen: React.FC = () => {
       captured_at: undefined,
       geocoded_at: undefined,
       photos: [],
+      photo_metadata: {},
     });
     setErrors({});
   };

@@ -163,6 +163,8 @@ export interface DiaryPhotoItem {
   captured_at?: string | null;
   location_name?: string | null;
   geocoded_at?: string | null;
+  accuracy?: number | string | null;
+  is_mocked?: boolean;
   [key: string]: any;
 }
 

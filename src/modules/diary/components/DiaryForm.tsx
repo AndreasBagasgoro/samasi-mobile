@@ -22,7 +22,20 @@ import {
   takeSelfieWithWatermark,
   pickImageFromGalleryWithWatermark,
   formatWatermarkDateTime,
+  getWatermarkLocationStatus,
+  CapturedWatermarkPhoto,
 } from '../utils';
+
+/** Metadata lokasi per foto (disimpan per URI foto di DiaryFormData.photo_metadata) */
+export interface DiaryPhotoMetadata {
+  latitude: number;
+  longitude: number;
+  location_name: string;
+  captured_at: string;
+  geocoded_at: string;
+  accuracy: number | null;
+  is_mocked: boolean;
+}
 
 export interface DiaryFormData {
   title: string;
@@ -37,6 +50,8 @@ export interface DiaryFormData {
   captured_at?: string;
   geocoded_at?: string;
   photos: string[];
+  /** Metadata lokasi per foto, key = URI foto di `photos` */
+  photo_metadata?: Record<string, DiaryPhotoMetadata>;
 }
 
 export interface DiaryFormProps {
@@ -55,6 +70,8 @@ interface NativeWatermarkRequest {
   locationName?: string;
   capturedAt?: Date;
   companyTag?: string;
+  accuracy?: number | null;
+  isMocked?: boolean;
 }
 
 interface InteractionChip {
@@ -112,6 +129,10 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
     [watermarkImageSize.width, watermarkImageSize.height]
   );
 
+  const nativeWatermarkStatus = nativeWatermarkRequest
+    ? getWatermarkLocationStatus(nativeWatermarkRequest.isMocked, nativeWatermarkRequest.accuracy)
+    : null;
+
   const captureNativeWatermark = (options: NativeWatermarkRequest): Promise<string> => {
     if (Platform.OS === 'web') {
       return Promise.resolve(options.uri);
@@ -131,6 +152,10 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
 
     const capture = async () => {
       try {
+        // Tunggu 2 frame agar foto benar-benar sudah tergambar sebelum di-capture
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        );
         const uri = await captureRef(watermarkViewRef, {
           format: 'jpg',
           quality: 0.92,
@@ -254,6 +279,40 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
     );
   };
 
+  const addCapturedPhoto = (result: CapturedWatermarkPhoto, source: 'camera' | 'gallery') => {
+    const capturedAtIso = result.capturedAt.toISOString();
+    const metadata: DiaryPhotoMetadata = {
+      latitude: result.latitude,
+      longitude: result.longitude,
+      location_name: result.locationName,
+      captured_at: capturedAtIso,
+      geocoded_at: capturedAtIso,
+      accuracy: result.accuracy,
+      is_mocked: result.isMocked,
+    };
+
+    console.log('[DiaryForm] Foto ditambahkan (belum disimpan):', {
+      source,
+      is_mocked: metadata.is_mocked,
+      accuracy: metadata.accuracy,
+      latitude: metadata.latitude,
+      longitude: metadata.longitude,
+      location_name: metadata.location_name,
+      captured_at: metadata.captured_at,
+    });
+
+    setFormData((prev) => ({
+      ...prev,
+      photos: [...prev.photos, result.uri],
+      photo_metadata: { ...prev.photo_metadata, [result.uri]: metadata },
+      latitude: result.latitude,
+      longitude: result.longitude,
+      location_name: result.locationName,
+      captured_at: capturedAtIso,
+      geocoded_at: capturedAtIso,
+    }));
+  };
+
   const handleTakeSelfie = async () => {
     setShowPhotoOptions(false);
     setIsProcessingPhoto(true);
@@ -265,15 +324,7 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
       }, captureNativeWatermark);
 
       if (result) {
-        setFormData((prev) => ({
-          ...prev,
-          photos: [...prev.photos, result.uri],
-          latitude: result.latitude,
-          longitude: result.longitude,
-          location_name: result.locationName,
-          captured_at: result.capturedAt.toISOString(),
-          geocoded_at: result.capturedAt.toISOString(),
-        }));
+        addCapturedPhoto(result, 'camera');
       }
     } catch (err: any) {
       Alert.alert(
@@ -296,15 +347,7 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
       }, captureNativeWatermark);
 
       if (result) {
-        setFormData((prev) => ({
-          ...prev,
-          photos: [...prev.photos, result.uri],
-          latitude: result.latitude,
-          longitude: result.longitude,
-          location_name: result.locationName,
-          captured_at: result.capturedAt.toISOString(),
-          geocoded_at: result.capturedAt.toISOString(),
-        }));
+        addCapturedPhoto(result, 'gallery');
       }
     } catch (err: any) {
       Alert.alert(
@@ -317,10 +360,15 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
   };
 
   const handleRemovePhoto = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      photos: prev.photos.filter((_, idx) => idx !== index),
-    }));
+    setFormData((prev) => {
+      const removedUri = prev.photos[index];
+      const { [removedUri]: _removed, ...restMetadata } = prev.photo_metadata || {};
+      return {
+        ...prev,
+        photos: prev.photos.filter((_, idx) => idx !== index),
+        photo_metadata: restMetadata,
+      };
+    });
   };
 
   const renderChip = (chip: InteractionChip) => {
@@ -377,6 +425,9 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
             source={{ uri: nativeWatermarkRequest.uri } as ImageSourcePropType}
             style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
+            // Android default fade-in 300ms: tanpa ini foto ter-capture saat masih
+            // setengah transparan di atas latar hitam sehingga hasilnya gelap
+            fadeDuration={0}
             onLoad={(event) => {
               const { width, height } = event.nativeEvent.source;
               if (width && height) {
@@ -392,10 +443,32 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
               setNativeWatermarkRequest(null);
             }}
           />
-          <View style={watermarkStyles.card}>
-            <Text style={watermarkStyles.company}>
-              {(nativeWatermarkRequest.companyTag || 'PT SAMASI • SALES TRACKER').toUpperCase()}
-            </Text>
+          <View
+            style={[
+              watermarkStyles.card,
+              { borderLeftColor: nativeWatermarkStatus?.accent },
+            ]}
+          >
+            <View style={watermarkStyles.headerRow}>
+              <Text style={watermarkStyles.company} numberOfLines={1}>
+                {(nativeWatermarkRequest.companyTag || 'PT SAMASI • SALES TRACKER').toUpperCase()}
+              </Text>
+              {nativeWatermarkStatus ? (
+                <View
+                  style={[
+                    watermarkStyles.statusBadge,
+                    { backgroundColor: nativeWatermarkStatus.background },
+                  ]}
+                >
+                  <Text
+                    style={[watermarkStyles.statusText, { color: nativeWatermarkStatus.color }]}
+                    numberOfLines={1}
+                  >
+                    {nativeWatermarkStatus.label}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
             <Text style={watermarkStyles.coordinates}>
               GPS {Math.abs(nativeWatermarkRequest.latitude).toFixed(6)}°{' '}
               {nativeWatermarkRequest.latitude >= 0 ? 'N' : 'S'}, {Math.abs(nativeWatermarkRequest.longitude).toFixed(6)}°{' '}
@@ -1108,6 +1181,13 @@ const styles = StyleSheet.create({
 const getNativeWatermarkStyles = (scale: number) => {
   const s = (value: number) => Math.round(value * scale);
 
+  // Bayangan teks agar tetap terbaca di atas foto terang
+  const textShadow = {
+    textShadowColor: 'rgba(0, 0, 0, 0.85)',
+    textShadowOffset: { width: s(1), height: s(1) },
+    textShadowRadius: s(4),
+  };
+
   return StyleSheet.create({
     card: {
       position: 'absolute',
@@ -1116,16 +1196,34 @@ const getNativeWatermarkStyles = (scale: number) => {
       bottom: s(14),
       paddingVertical: s(14),
       paddingHorizontal: s(16),
-      backgroundColor: 'rgba(10, 22, 40, 0.90)',
+      // Latar tipis hanya di area kartu agar teks terbaca, foto tetap terang
+      backgroundColor: 'rgba(10, 22, 40, 0.45)',
       borderRadius: s(12),
       borderLeftWidth: s(6),
       borderLeftColor: '#16A34A',
     },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: s(10),
+      marginBottom: s(8),
+    },
     company: {
+      flexShrink: 1,
       fontSize: s(21),
       fontWeight: '800',
       color: '#60A5FA',
-      marginBottom: s(8),
+      ...textShadow,
+    },
+    statusBadge: {
+      paddingHorizontal: s(10),
+      paddingVertical: s(5),
+      borderRadius: s(8),
+    },
+    statusText: {
+      fontSize: s(17),
+      fontWeight: '800',
     },
     coordinates: {
       fontSize: s(25),
@@ -1133,16 +1231,19 @@ const getNativeWatermarkStyles = (scale: number) => {
       color: '#FFFFFF',
       fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
       marginBottom: s(6),
+      ...textShadow,
     },
     location: {
       fontSize: s(20),
       color: '#E2E8F0',
       marginBottom: s(6),
+      ...textShadow,
     },
     time: {
       fontSize: s(19),
-      color: '#CBD5E1',
+      color: '#F1F5F9',
       fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+      ...textShadow,
     },
   });
 };
