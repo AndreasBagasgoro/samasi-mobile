@@ -6,7 +6,6 @@ import {
 } from '../constants/deal.constants';
 import { MoneyValue, PipelineStageItem, StageColor } from '../types';
 
-/** Prisma Decimal ter-serialize sebagai { s, e, d } — ubah ke number biasa */
 export const parseMoney = (val?: MoneyValue): number => {
   if (val === null || val === undefined) return 0;
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
@@ -16,7 +15,6 @@ export const parseMoney = (val?: MoneyValue): number => {
   }
   if (typeof val === 'object' && 's' in val && 'd' in val) {
     if (!Array.isArray(val.d) || val.d.length === 0) return 0;
-    // decimal.js menyimpan digit dalam chunk basis 1e7; chunk pertama tanpa padding
     const digits = val.d
       .map((chunk, idx) => (idx === 0 ? String(chunk) : String(chunk).padStart(7, '0')))
       .join('');
@@ -30,21 +28,18 @@ export const parseMoney = (val?: MoneyValue): number => {
 const addThousandSeparators = (value: string): string =>
   value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-/** 85000 -> "S$85,000" */
 export const formatCurrency = (value: number): string =>
   `${DEAL_CURRENCY}${addThousandSeparators(String(Math.round(value)))}`;
 
-/** 48000 -> "S$48K", 1750000 -> "S$1.75M" */
 export const formatCompactCurrency = (value: number): string => {
   const abs = Math.abs(value);
   const trim = (num: number) => String(Number(num.toFixed(2)));
-  if (abs >= 1_000_000_000) return `${DEAL_CURRENCY}${trim(value / 1_000_000_000)}B`;
-  if (abs >= 1_000_000) return `${DEAL_CURRENCY}${trim(value / 1_000_000)}M`;
-  if (abs >= 1_000) return `${DEAL_CURRENCY}${trim(value / 1_000)}K`;
+  if (abs >= 1_000_000_000) return `${DEAL_CURRENCY}${trim(value / 1_000_000_000)} M`;
+  if (abs >= 1_000_000) return `${DEAL_CURRENCY}${trim(value / 1_000_000)} JT`;
+  if (abs >= 1_000) return `${DEAL_CURRENCY}${trim(value / 1_000)} RB`;
   return `${DEAL_CURRENCY}${Math.round(value)}`;
 };
 
-/** Format angka input: "48000" -> "48,000" */
 export const formatNumberInput = (digits: string): string =>
   digits ? addThousandSeparators(digits) : '';
 
@@ -57,7 +52,6 @@ export const getStageColor = (
   return STAGE_COLORS[Math.max(index, 0) % STAGE_COLORS.length];
 };
 
-/** Ambil bagian tanggal (YYYY-MM-DD) agar tidak bergeser karena timezone */
 export const toDateOnly = (dateString?: string | null): string | null => {
   if (!dateString) return null;
   const match = /^(\d{4}-\d{2}-\d{2})/.exec(dateString);
@@ -66,7 +60,6 @@ export const toDateOnly = (dateString?: string | null): string | null => {
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-/** "2026-08-15" -> "Aug 15, 2026" */
 export const formatDealDate = (dateString?: string | null): string => {
   const dateOnly = toDateOnly(dateString);
   if (!dateOnly) return '-';
@@ -88,7 +81,6 @@ const getElapsed = (dateString?: string | null) => {
   return { minutes, hours, days, weeks, months, years };
 };
 
-/** Waktu relatif singkat: "5m", "3h", "2d", "1w", "4mo", "1y" */
 export const formatShortRelativeTime = (dateString?: string | null): string => {
   const elapsed = getElapsed(dateString);
   if (!elapsed) return '';
@@ -101,7 +93,6 @@ export const formatShortRelativeTime = (dateString?: string | null): string => {
   return 'now';
 };
 
-/** Waktu relatif panjang: "1 week ago" */
 export const formatRelativeTime = (dateString?: string | null): string => {
   const elapsed = getElapsed(dateString);
   if (!elapsed) return '-';
@@ -115,6 +106,5 @@ export const formatRelativeTime = (dateString?: string | null): string => {
   return 'Just now';
 };
 
-/** "Q3 2026" */
 export const getCurrentQuarterLabel = (date = new Date()): string =>
   `Q${Math.floor(date.getMonth() / 3) + 1} ${date.getFullYear()}`;

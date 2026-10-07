@@ -7,10 +7,17 @@ import { MainCard } from '@shared/components/MainCard';
 import { Colors, Gradients } from '@shared/constants';
 import { getInitials } from '@shared/utils';
 
+export interface HomeHeaderStats {
+    openDeals: number;
+    openValue: string;
+    wonThisMonth: number;
+}
+
 interface HomeHeaderProps {
     greet?: string;
     user?: string;
     title?: string;
+    stats?: HomeHeaderStats;
     onPressNotification?: () => void;
     onPressProfile?: () => void;
 }
@@ -25,8 +32,9 @@ const getGreeting = () => {
 
 export const HomeHeader: React.FC<HomeHeaderProps> = ({
     greet = getGreeting(),
-    user = 'Andreas',
-    title = 'NCS Freight · Singapore',
+    user = 'User',
+    title,
+    stats,
     onPressNotification,
     onPressProfile,
 }) => {
@@ -67,27 +75,33 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.locationPill}>
-                <Ionicons name="business-outline" size={12} color={Colors.text.inverseMuted} />
-                <Text style={styles.title}>{title}</Text>
-            </View>
+            {title ? (
+                <View style={styles.locationPill}>
+                    <Ionicons name="business-outline" size={12} color={Colors.text.inverseMuted} />
+                    <Text style={styles.title}>{title}</Text>
+                </View>
+            ) : null}
 
-            <View style={styles.cardsRow}>
-                <MainCard
-                    value="142"
-                    label="Customers"
-                    icon={<Ionicons name="people-outline" size={16} color={Colors.text.inverse} />}
-                />
-                <MainCard
-                    value="28"
-                    label="Active Deals"
-                    icon={<Ionicons name="briefcase-outline" size={16} color={Colors.text.inverse} />}
-                />
-                <MainCard
-                    value="19"
-                    label="This Month"
-                    icon={<Ionicons name="trending-up-outline" size={16} color={Colors.text.inverse} />}
-                />
+            <View style={styles.cardsWrapper}>
+                <View style={styles.cardsRowFull}>
+                    <MainCard
+                        value={stats ? stats.openValue : '—'}
+                        label="Pipeline Value"
+                        icon={<Ionicons name="wallet-outline" size={16} color={Colors.text.inverse} />}
+                    />
+                </View>
+                <View style={styles.cardsRow}>
+                    <MainCard
+                        value={stats ? String(stats.openDeals) : '—'}
+                        label="Open Deals"
+                        icon={<Ionicons name="briefcase-outline" size={16} color={Colors.text.inverse} />}
+                    />
+                    <MainCard
+                        value={stats ? String(stats.wonThisMonth) : '—'}
+                        label="Won This Month"
+                        icon={<Ionicons name="trending-up-outline" size={16} color={Colors.text.inverse} />}
+                    />
+                </View>
             </View>
         </LinearGradient>
     );
@@ -187,7 +201,6 @@ const styles = StyleSheet.create({
         alignSelf: 'flex-start',
         gap: 6,
         marginTop: 16,
-        marginBottom: 20,
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
@@ -197,6 +210,13 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: Colors.text.inverseMuted,
         fontWeight: '500',
+    },
+    cardsWrapper: {
+        marginTop: 20,
+        gap: 10,
+    },
+    cardsRowFull: {
+        flexDirection: 'row',
     },
     cardsRow: {
         flexDirection: 'row',

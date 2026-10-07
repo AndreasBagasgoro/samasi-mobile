@@ -14,6 +14,8 @@ import Constants from 'expo-constants';
 import { ConfirmDialog } from '@shared/components';
 import { Colors, Layout } from '@shared/constants';
 import { useAuthStore } from '@modules/auth';
+import { clearHomeCache } from '@modules/home/hooks';
+import { clearDealsCache } from '@modules/deals/hooks';
 import { useProfile, clearProfileCache } from '../hooks';
 import {
   ProfileHeader,
@@ -43,6 +45,8 @@ export const ProfileScreen: React.FC = () => {
     try {
       await logout();
       clearProfileCache();
+      clearHomeCache();
+      clearDealsCache();
     } finally {
       setIsSigningOut(false);
       setIsSignOutVisible(false);

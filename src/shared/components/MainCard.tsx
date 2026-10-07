@@ -12,8 +12,10 @@ export const MainCard: React.FC<MainCardProps> = ({ value, label, icon }) => {
   return (
     <View style={styles.cardContainer}>
       {icon && <View style={styles.iconWrapper}>{icon}</View>}
-      <Text style={styles.valueText}>{value}</Text>
-      <Text style={styles.labelText}>{label}</Text>
+      <View style={styles.textWrapper}>
+        <Text style={styles.valueText}>{value}</Text>
+        <Text style={styles.labelText}>{label}</Text>
+      </View>
     </View>
   );
 };
@@ -21,27 +23,30 @@ export const MainCard: React.FC<MainCardProps> = ({ value, label, icon }) => {
 const styles = StyleSheet.create({
   cardContainer: {
     flex: 1,
+    flexDirection: 'row',
     backgroundColor: Colors.glass.background,
     borderRadius: 18,
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 12,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
     borderWidth: 1,
     borderColor: Colors.glass.border,
   },
   iconWrapper: {
-    width: 30,
-    height: 30,
+    width: 32,
+    height: 32,
     borderRadius: 10,
     backgroundColor: Colors.glass.strong,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+  },
+  textWrapper: {
+    flexShrink: 1,
   },
   valueText: {
     color: Colors.text.inverse,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     marginBottom: 2,
   },
