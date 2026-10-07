@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useAuthStore } from '@modules/auth';
 import { dealService } from '../services/deal.service';
 import {
   CreateDealPayload,
@@ -17,6 +18,13 @@ export interface UseDealsOptions {
 let cachedDeals: DealItem[] | null = null;
 let cachedSummary: DealSummary | null = null;
 const cachedDealDetailMap = new Map<string, DealItem>();
+
+/** Reset cache deals, dipanggil saat logout agar user berikutnya tidak melihat data lama. */
+export const clearDealsCache = () => {
+  cachedDeals = null;
+  cachedSummary = null;
+  cachedDealDetailMap.clear();
+};
 
 export const formatDealData = (item: SalesDealEntryItem): DealItem => {
   const contact = item.customerContact;
@@ -44,6 +52,8 @@ export const formatDealData = (item: SalesDealEntryItem): DealItem => {
 
 export const useDeals = (options: UseDealsOptions = {}) => {
   const { autoFetch = true } = options;
+  const authUser = useAuthStore((state) => state.user);
+  const ownerId = authUser?.employee_id;
 
   const [deals, setDeals] = useState<DealItem[]>(cachedDeals || []);
   const [summary, setSummary] = useState<DealSummary | null>(cachedSummary);
@@ -56,8 +66,8 @@ export const useDeals = (options: UseDealsOptions = {}) => {
 
   const loadDeals = useCallback(async () => {
     const [listResponse, summaryResponse] = await Promise.all([
-      dealService.getDeals({ page: 1, per_page: DEAL_BOARD_LIMIT }),
-      dealService.getDealSummary().catch(() => null),
+      dealService.getDeals({ page: 1, per_page: DEAL_BOARD_LIMIT, owner_id: ownerId }),
+      dealService.getDealSummary({ owner_id: ownerId }).catch(() => null),
     ]);
 
     const formatted = listResponse.data.map(formatDealData);
@@ -65,7 +75,7 @@ export const useDeals = (options: UseDealsOptions = {}) => {
     cachedSummary = summaryResponse;
     setDeals(formatted);
     setSummary(summaryResponse);
-  }, []);
+  }, [ownerId]);
 
   const fetchDeals = useCallback(async () => {
     if (!cachedDeals) {
@@ -145,7 +155,7 @@ export const useDeals = (options: UseDealsOptions = {}) => {
         syncDeal(updated);
         // Nilai total pipeline bergantung pada status deal (OPEN/WON/LOST)
         dealService
-          .getDealSummary()
+          .getDealSummary({ owner_id: ownerId })
           .then((data) => {
             cachedSummary = data;
             setSummary(data);
@@ -160,7 +170,7 @@ export const useDeals = (options: UseDealsOptions = {}) => {
         return null;
       }
     },
-    [syncDeal]
+    [syncDeal, ownerId]
   );
 
   const createDeal = useCallback(async (payload: CreateDealPayload): Promise<DealItem | null> => {

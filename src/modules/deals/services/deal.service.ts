@@ -46,8 +46,11 @@ export const dealService = {
         };
     },
 
-    async getDealSummary(): Promise<DealSummary> {
-        const response = await mobileApiService.get<DealSummary>('/deals/summary');
+    async getDealSummary(params?: { owner_id?: string | number }): Promise<DealSummary> {
+        const queryParams: Record<string, string> = {};
+        if (params?.owner_id) queryParams.owner_id = String(params.owner_id);
+
+        const response = await mobileApiService.get<DealSummary>('/deals/summary', queryParams);
         return response.data;
     },
 

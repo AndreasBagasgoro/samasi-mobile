@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { LogBox, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '@modules/auth';
 import { AuthGuard } from '@guards/auth.guard';
@@ -50,24 +51,26 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="auto" />
-      <View style={styles.container}>
-        <AuthGuard>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="auth" />
-            <Stack.Screen name="home" />
-            <Stack.Screen name="index" />
-            <Stack.Screen name="sandbox" />
-          </Stack>
-        </AuthGuard>
-        {!fontsLoaded && (
-          <View style={styles.fontLoadingOverlay}>
-            <ActivityIndicator size="large" color="#3d81c5" />
-          </View>
-        )}
-      </View>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.container}>
+      <SafeAreaProvider>
+        <StatusBar style="auto" />
+        <View style={styles.container}>
+          <AuthGuard>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="auth" />
+              <Stack.Screen name="home" />
+              <Stack.Screen name="index" />
+              <Stack.Screen name="sandbox" />
+            </Stack>
+          </AuthGuard>
+          {!fontsLoaded && (
+            <View style={styles.fontLoadingOverlay}>
+              <ActivityIndicator size="large" color="#3d81c5" />
+            </View>
+          )}
+        </View>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

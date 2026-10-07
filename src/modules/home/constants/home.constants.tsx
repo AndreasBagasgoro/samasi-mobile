@@ -1,7 +1,10 @@
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { BlueGradientSet } from '@shared/constants';
-import { QuickActionItem, ReminderItem } from '../types/home.types';
+import { ActionItemType, QuickActionItem } from '../types/home.types';
+
+/** Target jumlah aktivitas diary per hari (konvensi internal, bukan dari backend). */
+export const DAILY_ACTIVITY_TARGET = 5;
 
 export const QUICK_ACTION_ITEMS: QuickActionItem[] = [
   {
@@ -10,7 +13,7 @@ export const QUICK_ACTION_ITEMS: QuickActionItem[] = [
     description: 'Log an activity',
     icon: <Ionicons name="create-outline" size={20} color="#FFF" />,
     gradient: BlueGradientSet[0],
-    onPress: () => {},
+    route: '/home/diary/create',
   },
   {
     id: 'new-customer',
@@ -18,15 +21,15 @@ export const QUICK_ACTION_ITEMS: QuickActionItem[] = [
     description: 'Add a company',
     icon: <Ionicons name="person-add-outline" size={20} color="#FFF" />,
     gradient: BlueGradientSet[1],
-    onPress: () => {},
+    route: '/home/customers/add-contact',
   },
   {
     id: 'search-contact',
-    label: 'Search Contact',
+    label: 'Contacts',
     description: 'Find people fast',
     icon: <Ionicons name="search-outline" size={20} color="#FFF" />,
     gradient: BlueGradientSet[3],
-    onPress: () => {},
+    route: '/home/customer-contacts',
   },
   {
     id: 'create-deal',
@@ -34,39 +37,35 @@ export const QUICK_ACTION_ITEMS: QuickActionItem[] = [
     description: 'Start a pipeline',
     icon: <Ionicons name="briefcase-outline" size={20} color="#FFF" />,
     gradient: BlueGradientSet[2],
-    onPress: () => {},
+    route: '/home/deals/create',
   },
 ];
 
-export const REMINDER_ITEMS: ReminderItem[] = [
-  {
-    id: 'rem-1',
-    title: 'Pacific Rim Logistics',
-    label: 'Daily Log',
-    time: '10:00 AM',
-    icon: 'document-text-outline',
-    iconColor: '#2563EB',
-    iconBackgroundColor: 'rgba(37, 99, 235, 0.10)',
-    onPress: () => {},
+export interface ActionItemPresentation {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+  backgroundColor: string;
+}
+
+/** Tampilan (warna/ikon/label) per tipe action item, diurutkan dari paling mendesak. */
+export const ACTION_ITEM_PRESENTATION: Record<ActionItemType, ActionItemPresentation> = {
+  OVERDUE: {
+    label: 'Lewat',
+    icon: 'alert-circle-outline',
+    color: '#E5484D',
+    backgroundColor: 'rgba(229, 72, 77, 0.10)',
   },
-  {
-    id: 'rem-2',
-    title: 'Follow up Lead: Acme Corp',
-    label: 'Call Meeting',
-    time: '02:30 PM',
-    icon: 'call-outline',
-    iconColor: '#0EA5E9',
-    iconBackgroundColor: 'rgba(14, 165, 233, 0.12)',
-    onPress: () => {},
+  DUE_SOON: {
+    label: 'Akan close',
+    icon: 'time-outline',
+    color: '#F59E0B',
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
   },
-  {
-    id: 'rem-3',
-    title: 'Contract Sign: Delta Inc',
-    label: 'Urgent Deal',
-    time: '04:45 PM',
-    icon: 'flag-outline',
-    iconColor: '#E5484D',
-    iconBackgroundColor: 'rgba(229, 72, 77, 0.10)',
-    onPress: () => {},
+  STALE: {
+    label: 'Tanpa aktivitas',
+    icon: 'moon-outline',
+    color: '#64748B',
+    backgroundColor: 'rgba(100, 116, 139, 0.10)',
   },
-];
+};

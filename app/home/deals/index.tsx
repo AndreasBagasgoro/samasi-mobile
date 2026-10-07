@@ -1,5 +1,4 @@
-import { DealPipelineScreen } from "@modules/deals";
-
+// Rendered by the swipe pager in app/home/_layout.tsx.
 export default function DealsIndexPage() {
-  return <DealPipelineScreen />;
+  return null;
 }

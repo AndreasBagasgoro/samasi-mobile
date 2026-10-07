@@ -1,7 +1,7 @@
 import { Colors } from '@shared/constants';
 import { StageColor } from '../types';
 
-export const DEAL_CURRENCY = 'S$';
+export const DEAL_CURRENCY = 'Rp';
 
 /** Jumlah deal yang diambil sekaligus untuk board kanban (batas maksimal API: 1000) */
 export const DEAL_BOARD_LIMIT = 500;

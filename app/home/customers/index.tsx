@@ -1,5 +1,4 @@
-import { CustomerScreen } from "@modules/customers";
-
+// Rendered by the swipe pager in app/home/_layout.tsx.
 export default function CustomersIndexPage() {
-  return <CustomerScreen />;
+  return null;
 }
