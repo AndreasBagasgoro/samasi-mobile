@@ -131,7 +131,14 @@ export default function HomeLayout() {
         </View>
         <GestureDetector gesture={swipeGesture}>
           <Animated.View
-            style={[styles.layer, animatedStyle, { display: isBaseRoute ? 'flex' : 'none' }]}
+            // The row must be as wide as all pages so its translated frame still covers the screen;
+            // otherwise Android drops touches (scroll) on pages that sit outside the screen-sized frame.
+            style={[
+              styles.layer,
+              { right: undefined, width: width * defaultNavigationItems.length },
+              animatedStyle,
+              { display: isBaseRoute ? 'flex' : 'none' },
+            ]}
           >
             {visibleItems.map(({ item, index }) => {
               const Screen = TAB_SCREENS[item.id];
