@@ -21,6 +21,12 @@ let cachedFormattedCustomers: CustomerItem[] | null = null;
 const cachedDetailMap = new Map<string | number, CustomerDetailItem>();
 const cachedContactsMap = new Map<string | number, CustomerContactSummaryItem[]>();
 
+/** Hapus cache kontak customer agar fetch berikutnya mengambil data terbaru. */
+export const invalidateCustomerContacts = (customerId: string | number) => {
+  cachedContactsMap.delete(customerId);
+  cachedContactsMap.delete(String(customerId));
+};
+
 export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, defaultLimit: 10 }) => {
   const { autoFetch = true, defaultLimit = 10 } = options;
 
