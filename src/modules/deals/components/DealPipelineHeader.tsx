@@ -9,13 +9,11 @@ import { formatCompactCurrency, getCurrentQuarterLabel } from '../utils';
 interface DealPipelineHeaderProps {
   totalPipelineValue?: number;
   onListPress?: () => void;
-  onAddPress?: () => void;
 }
 
 export const DealPipelineHeader: React.FC<DealPipelineHeaderProps> = ({
   totalPipelineValue = 0,
   onListPress,
-  onAddPress,
 }) => {
   const insets = useSafeAreaInsets();
 
@@ -38,15 +36,6 @@ export const DealPipelineHeader: React.FC<DealPipelineHeaderProps> = ({
           >
             <Ionicons name="list-outline" size={15} color={Colors.text.inverse} />
             <Text style={styles.glassButtonText}>List</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={onAddPress}
-            activeOpacity={0.8}
-            accessibilityLabel="Create deal"
-          >
-            <Ionicons name="add" size={16} color={Colors.primary} />
-            <Text style={styles.addButtonText}>Deal</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -109,20 +98,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: Colors.text.inverse,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  addButtonText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Colors.primary,
   },
   captionRow: {
     flexDirection: 'row',
