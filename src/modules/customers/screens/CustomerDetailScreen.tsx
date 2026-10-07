@@ -20,6 +20,8 @@ export const CustomerDetailScreen: React.FC = () => {
     const { width: screenWidth } = useWindowDimensions();
 
     const [activeTab, setActiveTab] = useState(0);
+    // Tab Deals/Timeline baru fetch saat pertama kali dikunjungi
+    const [visitedTabs, setVisitedTabs] = useState<number[]>([0]);
     const scrollViewRef = useRef<any>(null);
     const scrollX = useRef(new Animated.Value(0)).current;
 
@@ -28,6 +30,10 @@ export const CustomerDetailScreen: React.FC = () => {
             fetchCustomerDetail(id);
         }
     }, [id, fetchCustomerDetail]);
+
+    useEffect(() => {
+        setVisitedTabs((prev) => (prev.includes(activeTab) ? prev : [...prev, activeTab]));
+    }, [activeTab]);
 
     const customer = getCustomerById(id);
 
@@ -86,10 +92,10 @@ export const CustomerDetailScreen: React.FC = () => {
                     <ContactsTabScreen customer={customer} />
                 </View>
                 <View style={[styles.pageWrapper, { width: screenWidth }]}>
-                    <DealsTabScreen customer={customer} />
+                    <DealsTabScreen customer={customer} enabled={visitedTabs.includes(2)} />
                 </View>
                 <View style={[styles.pageWrapper, { width: screenWidth }]}>
-                    <TimelineTabScreen customer={customer} />
+                    <TimelineTabScreen customer={customer} enabled={visitedTabs.includes(3)} />
                 </View>
             </Animated.ScrollView>
         </SafeAreaView>

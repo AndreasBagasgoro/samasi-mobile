@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, ScrollView, View, ActivityIndicator, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { invalidateCustomerContacts } from '@modules/customers/hooks/useCustomers';
 import { FormHeader, SaveResult } from '@shared/components';
 import { Colors } from '@shared/constants';
 import { ContactForm, ContactFormData } from '../components';
@@ -28,12 +29,18 @@ interface SaveResultState {
 
 export const AddContactScreen: React.FC = () => {
   const router = useRouter();
+  const params = useLocalSearchParams<{ customer_id?: string; customer_name?: string }>();
+  const presetCustomerId = params.customer_id ? String(params.customer_id) : '';
+  const presetCustomerName = params.customer_name ? String(params.customer_name) : '';
   const { createContact, isSaving } = useCustomerContacts({ autoFetch: false });
 
-  const [formData, setFormData] = useState<ContactFormData>(EMPTY_FORM);
+  const [formData, setFormData] = useState<ContactFormData>({
+    ...EMPTY_FORM,
+    customer_id: presetCustomerId,
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saveResult, setSaveResult] = useState<SaveResultState>({ status: 'idle' });
-  const [customerName, setCustomerName] = useState('');
+  const [customerName, setCustomerName] = useState(presetCustomerName);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -70,6 +77,7 @@ export const AddContactScreen: React.FC = () => {
     });
 
     if (contact) {
+      invalidateCustomerContacts(formData.customer_id);
       setCustomerName(contact.customer_name || customerName);
       setSaveResult({
         status: 'success',
@@ -83,7 +91,7 @@ export const AddContactScreen: React.FC = () => {
 
   const handleNewContact = () => {
     setSaveResult({ status: 'idle' });
-    setFormData(EMPTY_FORM);
+    setFormData({ ...EMPTY_FORM, customer_id: presetCustomerId });
     setErrors({});
   };
 
@@ -125,8 +133,9 @@ export const AddContactScreen: React.FC = () => {
           primaryAction={{ label: 'View Contact', icon: 'person-outline', onPress: handleViewContact }}
           secondaryAction={{ label: 'New Contact', icon: 'add', onPress: handleNewContact }}
           tertiaryAction={{
-            label: 'Back to Contacts',
-            onPress: () => router.replace('/home/customer-contacts'),
+            label: presetCustomerId ? 'Back to Customer' : 'Back to Contacts',
+            onPress: () =>
+              presetCustomerId ? handleGoBack() : router.replace('/home/customer-contacts'),
           }}
         />
       </SafeAreaView>
@@ -164,6 +173,9 @@ export const AddContactScreen: React.FC = () => {
           errors={errors}
           setErrors={setErrors}
           onCustomerChange={setCustomerName}
+          lockedCustomer={
+            presetCustomerId ? { id: presetCustomerId, name: presetCustomerName } : undefined
+          }
         />
       </ScrollView>
 

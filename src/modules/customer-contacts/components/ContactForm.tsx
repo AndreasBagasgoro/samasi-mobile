@@ -19,6 +19,8 @@ export interface ContactFormProps {
   errors?: Record<string, string>;
   setErrors?: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onCustomerChange?: (customerName: string) => void;
+  /** Customer sudah ditentukan (mis. dari detail customer): tampil read-only, tanpa fetch daftar customer. */
+  lockedCustomer?: { id: string; name: string };
 }
 
 const CUSTOMER_OPTION_LIMIT = 100;
@@ -29,11 +31,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({
   errors,
   setErrors,
   onCustomerChange,
+  lockedCustomer,
 }) => {
   const [customers, setCustomers] = useState<CustomerSummaryItem[]>([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
 
   useEffect(() => {
+    if (lockedCustomer) return;
     let isMounted = true;
     const loadCustomers = async () => {
       setIsLoadingCustomers(true);
@@ -50,7 +54,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [lockedCustomer]);
 
   const customerOptions = useMemo(
     () =>
@@ -88,6 +92,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({
         <Text style={styles.fieldTitle}>
           CUSTOMER <Text style={styles.requiredAsterisk}>*</Text>
         </Text>
+        {lockedCustomer ? (
+          <Input
+            value={lockedCustomer.name}
+            editable={false}
+            inputContainerStyle={styles.inputContainerStyle}
+          />
+        ) : (
         <Dropdown
           placeholder={isLoadingCustomers ? 'Memuat customer...' : 'Select customer...'}
           items={customerOptions}
@@ -102,6 +113,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({
           modalTitle="Pilih Customer"
           inputContainerStyle={styles.inputContainerStyle}
         />
+        )}
       </View>
 
       <View>

@@ -8,6 +8,7 @@ import {
     CustomerTypeResponse,
     CustomerTypeNameResponse,
     CreateCustomerPayload,
+    CustomerTimelineResponse,
 } from '../types';
 
 
@@ -46,6 +47,37 @@ export const customerService = {
     async getCustomerContact(id: string | number): Promise<CustomerContactSummaryItem[]> {
         const response = await mobileApiService.get<CustomerContactSummaryItem[]>(`/customers/${id}/contacts`);
         return response.data;
+    },
+
+    async getCustomerDeals(id: string | number, params?: { page?: number; per_page?: number }): Promise<{ data: any[]; meta: { page: number; per_page: number; total: number; total_pages: number } }> {
+        const queryParams: Record<string, string> = {};
+        if (params?.page !== undefined) queryParams.page = String(params.page);
+        if (params?.per_page !== undefined) queryParams.per_page = String(params.per_page);
+        const raw = await mobileApiService.get<any>(`/customers/${id}/deals`, queryParams) as any;
+        return {
+            data: raw.data ?? [],
+            meta: {
+                page: raw.meta?.page ?? 1,
+                per_page: raw.meta?.per_page ?? params?.per_page ?? 10,
+                total: raw.meta?.total ?? 0,
+                total_pages: raw.meta?.total_pages ?? 1,
+            },
+        };
+    },
+
+    async getCustomerTimeline(id: string | number, params?: { limit?: number; before?: string | null }): Promise<CustomerTimelineResponse> {
+        const queryParams: Record<string, string> = {};
+        if (params?.limit !== undefined) queryParams.limit = String(params.limit);
+        if (params?.before) queryParams.before = params.before;
+        const raw = await mobileApiService.get<any>(`/customers/${id}/timeline`, queryParams) as any;
+        return {
+            data: raw.data ?? [],
+            meta: {
+                limit: raw.meta?.limit ?? params?.limit ?? 20,
+                has_more: raw.meta?.has_more ?? false,
+                next_cursor: raw.meta?.next_cursor ?? null,
+            },
+        };
     },
 
     async getCustomerTypes(params?: CustomerListParams): Promise<CustomerTypeResponse> {

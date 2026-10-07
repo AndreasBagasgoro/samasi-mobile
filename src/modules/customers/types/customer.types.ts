@@ -152,3 +152,28 @@ export interface CustomerTypeNameResponse {
         total_pages: number;
     };
 }
+
+export type CustomerTimelineEventType = 'DIARY' | 'DEAL_CREATED' | 'DEAL_WON' | 'DEAL_LOST';
+
+export interface CustomerTimelineEvent {
+    event_id: string;
+    event_type: CustomerTimelineEventType;
+    title: string;
+    description?: string | null;
+    occurred_at: string;
+    contact_name?: string | null;
+    actor_name?: string | null;
+    interaction_type_code?: string | null;
+    interaction_type_name?: string | null;
+    ref_type: 'DIARY' | 'DEAL';
+    ref_id: string;
+}
+
+export interface CustomerTimelineResponse {
+    data: CustomerTimelineEvent[];
+    meta: {
+        limit: number;
+        has_more: boolean;
+        next_cursor: string | null;
+    };
+}

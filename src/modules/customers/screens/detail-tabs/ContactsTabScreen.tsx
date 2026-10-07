@@ -1,5 +1,5 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'expo-router';
+import React, { useCallback, useMemo } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Layout } from '@shared/constants';
@@ -17,17 +17,28 @@ export const ContactsTabScreen: React.FC<ContactsTabProps> = ({ customer }) => {
 
   const customerId = customer?.id;
 
-  useEffect(() => {
-    if (customerId) {
-      fetchCustomerContact(customerId);
-    }
-  }, [customerId, fetchCustomerContact]);
+  // Fetch saat tab dibuka dan setiap kembali fokus (mis. setelah Add Contact); cache tampil dulu.
+  useFocusEffect(
+    useCallback(() => {
+      if (customerId) {
+        fetchCustomerContact(customerId);
+      }
+    }, [customerId, fetchCustomerContact])
+  );
 
   const handleCustomerContactPress = useCallback((id?: string | number) => {
     if (id) {
-      router.push(`/home/contacts/${id}`);
+      router.push(`/home/customer-contacts/${id}`);
     }
   }, [router]);
+
+  const handleAddContact = useCallback(() => {
+    if (!customerId) return;
+    router.push({
+      pathname: '/home/customer-contacts/create',
+      params: { customer_id: String(customerId), customer_name: customer?.name ?? '' },
+    });
+  }, [router, customerId, customer?.name]);
 
   const handleRefresh = useCallback(() => {
     if (customerId) {
@@ -89,7 +100,7 @@ export const ContactsTabScreen: React.FC<ContactsTabProps> = ({ customer }) => {
       {!isLoading && (
         <View style={styles.contactsList}>
           {renderedCustomerContactList}
-          <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.addButton} activeOpacity={0.8} onPress={handleAddContact}>
             <Ionicons name="add-circle-outline" size={18} color={Colors.primary} />
             <Text style={styles.addButtonText}>Add Contact</Text>
           </TouchableOpacity>
