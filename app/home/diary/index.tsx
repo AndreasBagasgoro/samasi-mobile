@@ -1,5 +1,4 @@
-import { DiaryScreen } from "@modules/diary";
-
+// Rendered by the swipe pager in app/home/_layout.tsx.
 export default function DiaryIndexPage() {
-  return <DiaryScreen />
+  return null;
 }

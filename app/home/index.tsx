@@ -1,5 +1,4 @@
-import { HomeScreen } from '@modules/home';
-
+// Rendered by the swipe pager in app/home/_layout.tsx.
 export default function HomePage() {
-  return <HomeScreen />;
+  return null;
 }
