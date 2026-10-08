@@ -262,7 +262,9 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
     }
   }, [formatCustomerData, defaultLimit, debouncedQuery, selectedCustomerTypeId]);
 
-  const createCustomer = useCallback(async (payload: CreateCustomerPayload): Promise<CustomerDetailItem | null> => {
+  const createCustomer = useCallback(async (
+    payload: CreateCustomerPayload
+  ): Promise<{ customer: CustomerDetailItem | null; errorMessage?: string }> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -270,11 +272,11 @@ export const useCustomers = (options: UseCustomersOptions = { autoFetch: true, d
       // Invalidate customer list cache so next fetch gets fresh data
       cachedCustomers = null;
       cachedFormattedCustomers = null;
-      return data;
+      return { customer: data };
     } catch (err: any) {
       const errorMessage = err?.message || 'Gagal menambahkan customer baru.';
       setError(errorMessage);
-      return null;
+      return { customer: null, errorMessage };
     } finally {
       setIsLoading(false);
     }

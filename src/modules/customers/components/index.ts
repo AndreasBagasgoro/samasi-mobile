@@ -6,3 +6,4 @@ export * from './Navigation';
 export * from './ContactCard';
 export * from './DealsCard';
 export * from './CustomerForm';
+export * from './CustomerSaveResult';
