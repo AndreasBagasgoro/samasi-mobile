@@ -75,6 +75,26 @@ export interface GPSLocationResult {
   isMocked: boolean;
 }
 
+
+const GPS_TIMEOUT_MS = 8000;
+const GEOCODE_TIMEOUT_MS = 3500;
+const LAST_KNOWN_MAX_AGE_MS = 2 * 60 * 1000;
+
+const withTimeout = <T>(promise: Promise<T>, ms: number): Promise<T | null> =>
+  new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      () => {
+        clearTimeout(timer);
+        resolve(null);
+      }
+    );
+  });
+
 export const getCurrentGPSLocation = async (fallback?: {
   latitude?: number;
   longitude?: number;
@@ -92,10 +112,18 @@ export const getCurrentGPSLocation = async (fallback?: {
       };
     }
 
-    const location = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.Balanced,
-    });
-    console.log(`[GPS] Raw location object:`, JSON.stringify(location));
+    const location =
+      (await withTimeout(
+        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+        GPS_TIMEOUT_MS
+      )) ??
+      (await Location.getLastKnownPositionAsync({ maxAge: LAST_KNOWN_MAX_AGE_MS }).catch(
+        () => null
+      ));
+
+    if (!location) {
+      throw new Error('Lokasi tidak tersedia');
+    }
 
     const lat = location.coords.latitude;
     const lng = location.coords.longitude;
@@ -173,42 +201,42 @@ export const captureEntryLocation = async (): Promise<EntryLocationResult> => {
  * @param fallbackName - Nama lokasi fallback jika reverse geocoding gagal
  * @returns Nama lokasi hasil reverse geocoding, atau koordinat sebagai string jika gagal
  */
+// Cache nama lokasi per ~11 m (4 desimal) agar foto berikutnya di tempat yang sama
+// tidak mengulang request jaringan.
+const geocodeCache = new Map<string, string>();
+
 export const reverseGeocodeCoordinates = async (
   latitude: number,
   longitude: number,
   fallbackName?: string
 ): Promise<string> => {
-  try {
-    console.log(`[Geocoding] Starting reverse geocode for lat: ${latitude}, lng: ${longitude}`);
-    const places = await Location.reverseGeocodeAsync({ latitude, longitude });
-    console.log(`[Geocoding] Result from reverseGeocodeAsync:`, JSON.stringify(places));
-
-    if (places && places.length > 0) {
-      const place = places[0];
-      const parts = [
-        place.name || place.street,
-        place.subregion || place.city || place.district,
-        place.region,
-      ].filter(Boolean) as string[];
-
-      if (parts.length > 0) {
-        const resolvedName = parts.join(', ');
-        console.log(`[Geocoding] Resolved location name:`, resolvedName);
-        return resolvedName;
-      } else {
-        console.log(`[Geocoding] places array is valid but parts are empty. Place obj:`, JSON.stringify(place));
-      }
-    } else {
-      console.log(`[Geocoding] places array is empty or null`);
-    }
-  } catch (error: any) {
-    console.log(`[Geocoding] Error during reverseGeocodeAsync:`, error.message || error);
-    // Reverse geocoding optional, tetap lanjutkan dengan fallback
+  const cacheKey = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+  const cached = geocodeCache.get(cacheKey);
+  if (cached) {
+    return cached;
   }
 
-  const finalName = fallbackName || `${latitude.toFixed(4)}°, ${longitude.toFixed(4)}°`;
-  console.log(`[Geocoding] Returning fallback location name:`, finalName);
-  return finalName;
+  const places = await withTimeout(
+    Location.reverseGeocodeAsync({ latitude, longitude }),
+    GEOCODE_TIMEOUT_MS
+  );
+
+  if (places && places.length > 0) {
+    const place = places[0];
+    const parts = [
+      place.name || place.street,
+      place.subregion || place.city || place.district,
+      place.region,
+    ].filter(Boolean) as string[];
+
+    if (parts.length > 0) {
+      const resolvedName = parts.join(', ');
+      geocodeCache.set(cacheKey, resolvedName);
+      return resolvedName;
+    }
+  }
+
+  return fallbackName || `${latitude.toFixed(4)}°, ${longitude.toFixed(4)}°`;
 };
 
 
@@ -410,7 +438,12 @@ export const takeSelfieWithWatermark = async (fallbackCoords?: {
     throw new Error('Akses kamera diperlukan untuk mengambil foto selfie.');
   }
 
-  // 2. Luncurkan kamera dengan kamera depan (Selfie)
+  // 2. Mulai ambil GPS + nama lokasi SEKARANG, paralel dengan kamera terbuka. Saat user selesai
+  // memotret, lokasi sudah siap sehingga tidak ada waktu tunggu GPS/geocoding setelah foto.
+  // (Tidak pernah throw: kegagalan sudah ditangani dengan fallback di dalamnya.)
+  const gpsPromise = getCurrentGPSLocation(fallbackCoords);
+
+  // 3. Luncurkan kamera dengan kamera depan (Selfie)
   const result = await ImagePicker.launchCameraAsync({
     cameraType: ImagePicker.CameraType.front,
     allowsEditing: false,
@@ -424,8 +457,8 @@ export const takeSelfieWithWatermark = async (fallbackCoords?: {
   const rawUri = result.assets[0].uri;
   const captureTime = new Date();
 
-  // 3. Ambil koordinat GPS saat foto diambil
-  const gpsLocation = await getCurrentGPSLocation(fallbackCoords);
+  // 4. Koordinat GPS (biasanya sudah selesai selagi user memotret)
+  const gpsLocation = await gpsPromise;
 
   // 4. Bubuhkan watermark koordinat dan waktu ke gambar
   const watermarkedUri = await applyWatermarkToImage({
@@ -463,6 +496,9 @@ export const pickImageFromGalleryWithWatermark = async (fallbackCoords?: {
     throw new Error('Akses galeri foto diperlukan untuk memilih gambar.');
   }
 
+  // GPS + geocoding berjalan paralel selagi user memilih foto
+  const gpsPromise = getCurrentGPSLocation(fallbackCoords);
+
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
     allowsEditing: false,
@@ -475,7 +511,7 @@ export const pickImageFromGalleryWithWatermark = async (fallbackCoords?: {
 
   const rawUri = result.assets[0].uri;
   const captureTime = new Date();
-  const gpsLocation = await getCurrentGPSLocation(fallbackCoords);
+  const gpsLocation = await gpsPromise;
 
   const watermarkedUri = await applyWatermarkToImage({
     uri: rawUri,
