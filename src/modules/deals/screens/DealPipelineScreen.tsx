@@ -71,7 +71,6 @@ export const DealPipelineScreen: React.FC = () => {
         <DealPipelineHeader
           totalPipelineValue={summary?.total_estimated_value_open}
           onListPress={() => router.push('/home/deals/list')}
-          onAddPress={() => router.push('/home/deals/create')}
         />
 
         {error && !isLoading && (

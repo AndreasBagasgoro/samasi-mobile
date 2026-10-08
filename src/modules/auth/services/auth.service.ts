@@ -53,8 +53,17 @@ class AuthService {
   }
 
   async getProfile(): Promise<User> {
-    const res = await authApiService.get<User>('/auth/profile');
-    return res.data;
+    const res = await authApiService.get<any>('/auth/me');
+    const user: User = res.data || {};
+
+    if (user && !user.name && user.full_name) {
+      user.name = user.full_name;
+    }
+    if (user && !user.id && user.employee_id) {
+      user.id = String(user.employee_id);
+    }
+
+    return user;
   }
 
   async refreshToken(refreshToken: string): Promise<{ token: string; refreshToken: string }> {

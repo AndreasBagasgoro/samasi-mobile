@@ -15,6 +15,10 @@ export interface NavigationMenuItem {
 
 export interface NavigationBarProps {
   items?: NavigationMenuItem[];
+  /** Overrides the pathname-based active tab (lets the parent highlight a tab before navigation settles). */
+  activeRoute?: string;
+  /** Called on press instead of the default router.replace. */
+  onItemPress?: (item: NavigationMenuItem, index: number) => void;
 }
 
 const ACTIVE_ICON_COLOR = Colors.text.inverse;
@@ -66,6 +70,8 @@ export const defaultNavigationItems: NavigationMenuItem[] = [
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({
   items = defaultNavigationItems,
+  activeRoute,
+  onItemPress,
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -73,13 +79,15 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
 
   return (
     <View style={[styles.container, { paddingBottom: 12 + insets.bottom }]}>
-      {items.map((item) => {
-        const isActive = pathname === item.route || (item.route === '/home' && (pathname === '/home' || pathname === '/home/'));
+      {items.map((item, index) => {
+        const isActive = activeRoute !== undefined
+          ? item.route === activeRoute
+          : pathname === item.route || (item.route === '/home' && (pathname === '/home' || pathname === '/home/'));
         return (
           <TouchableOpacity
             key={item.id}
             style={styles.button}
-            onPress={() => router.replace(item.route as any)}
+            onPress={() => (onItemPress ? onItemPress(item, index) : router.replace(item.route as any))}
             activeOpacity={0.7}
           >
             {isActive ? (

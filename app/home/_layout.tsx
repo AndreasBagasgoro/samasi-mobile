@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { NavigationBar, defaultNavigationItems } from '@shared/components';
+import type { NavigationMenuItem } from '@shared/components';
 import { HomeScreen } from '@modules/home';
 import { CustomerScreen } from '@modules/customers';
 import { DiaryScreen } from '@modules/diary';
@@ -24,7 +25,17 @@ const TAB_SCREENS: Record<string, React.ComponentType> = {
   contacts: ContactListScreen,
 };
 
-const BASE_ROUTES = new Set(defaultNavigationItems.map((item) => item.route));
+// Memoized so layout re-renders (route / pending-tab / mount changes) don't re-render every mounted tab screen.
+const TabPage = React.memo(({ id, left, width }: { id: string; left: number; width: number }) => {
+  const Screen = TAB_SCREENS[id];
+  return (
+    <View style={[styles.page, { left, width }]}>
+      <Screen />
+    </View>
+  );
+});
+
+const BASE_ROUTES =new Set(defaultNavigationItems.map((item) => item.route));
 const COMMIT_DISTANCE_RATIO = 0.3;
 const COMMIT_VELOCITY = 500;
 const EDGE_RESISTANCE = 0.25;
@@ -52,9 +63,21 @@ export default function HomeLayout() {
   // Pages sit side by side in one row; the row is shifted so currentIndex is on screen.
   const translateX = useSharedValue(-currentIndex * width);
 
+  // Last offset the pager was animated to (by a tap or a swipe), so the effect below doesn't restart it.
+  const lastTarget = useRef(-currentIndex * width);
+
   useEffect(() => {
-    translateX.value = -currentIndex * width;
+    const target = -currentIndex * width;
+    if (lastTarget.current === target) return;
+    lastTarget.current = target;
+    translateX.value = withTiming(target, { duration: SLIDE_DURATION });
   }, [currentIndex, width, translateX]);
+
+  // Tapped tab, highlighted immediately while the router catches up.
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  useEffect(() => {
+    setPendingIndex(null);
+  }, [routeIndex]);
 
   // Tabs are mounted lazily (current one, plus neighbours once a swipe starts) and then kept alive.
   const [mountedIds, setMountedIds] = useState<string[]>(() => [defaultNavigationItems[currentIndex].id]);
@@ -75,8 +98,25 @@ export default function HomeLayout() {
   }, [currentIndex, mountTabs]);
 
   const navigateToIndex = useCallback((index: number) => {
+    lastTarget.current = -index * width;
     router.replace(defaultNavigationItems[index].route as any);
-  }, [router]);
+  }, [router, width]);
+
+  // Slide first and navigate once the slide finishes, so router work doesn't compete with the animation.
+  const handleTabPress = useCallback((item: NavigationMenuItem, index: number) => {
+    if (index === (pendingIndex ?? currentIndex)) return;
+    const isBackToCurrent = index === currentIndex;
+    setPendingIndex(isBackToCurrent ? null : index);
+    mountTabs([item.id]);
+    lastTarget.current = -index * width;
+    translateX.value = withTiming(
+      -index * width,
+      { duration: SLIDE_DURATION },
+      (finished) => {
+        if (finished && !isBackToCurrent) runOnJS(navigateToIndex)(index);
+      },
+    );
+  }, [currentIndex, pendingIndex, mountTabs, navigateToIndex, translateX, width]);
 
   const swipeGesture = Gesture.Pan()
     .enabled(isBaseRoute)
@@ -131,20 +171,27 @@ export default function HomeLayout() {
         </View>
         <GestureDetector gesture={swipeGesture}>
           <Animated.View
-            style={[styles.layer, animatedStyle, { display: isBaseRoute ? 'flex' : 'none' }]}
+            // The row must be as wide as all pages so its translated frame still covers the screen;
+            // otherwise Android drops touches (scroll) on pages that sit outside the screen-sized frame.
+            style={[
+              styles.layer,
+              { right: undefined, width: width * defaultNavigationItems.length },
+              animatedStyle,
+              { display: isBaseRoute ? 'flex' : 'none' },
+            ]}
           >
-            {visibleItems.map(({ item, index }) => {
-              const Screen = TAB_SCREENS[item.id];
-              return (
-                <View key={item.id} style={[styles.page, { left: index * width, width }]}>
-                  <Screen />
-                </View>
-              );
-            })}
+            {visibleItems.map(({ item, index }) => (
+              <TabPage key={item.id} id={item.id} left={index * width} width={width} />
+            ))}
           </Animated.View>
         </GestureDetector>
       </View>
-      {isBaseRoute && <NavigationBar />}
+      {isBaseRoute && (
+        <NavigationBar
+          activeRoute={defaultNavigationItems[pendingIndex ?? currentIndex].route}
+          onItemPress={handleTabPress}
+        />
+      )}
     </View>
   );
 }

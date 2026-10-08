@@ -78,6 +78,9 @@ interface NativeWatermarkRequest {
   isMocked?: boolean;
 }
 
+/** Sisi terpanjang maksimum (px) foto hasil watermark. Cukup tajam untuk bukti kunjungan. */
+const MAX_WATERMARK_SIDE = 1920;
+
 const formatCoordinate = (value: number, positive: string, negative: string) =>
   `${Math.abs(value).toFixed(6)}° ${value >= 0 ? positive : negative}`;
 
@@ -466,10 +469,15 @@ export const DiaryForm: React.FC<DiaryFormProps> = ({
             style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
             fadeDuration={0}
+            resizeMethod="resize"
             onLoad={(event) => {
               const { width, height } = event.nativeEvent.source;
               if (width && height) {
-                setWatermarkImageSize({ width, height });
+                const ratio = Math.min(1, MAX_WATERMARK_SIDE / Math.max(width, height));
+                setWatermarkImageSize({
+                  width: Math.round(width * ratio),
+                  height: Math.round(height * ratio),
+                });
               }
               setWatermarkImageReady(true);
             }}

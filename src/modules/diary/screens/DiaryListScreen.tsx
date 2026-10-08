@@ -198,6 +198,8 @@ export const DiaryScreen: React.FC = () => {
             itemsPerPage={pagination.per_page}
             isLoading={isLoading}
             onPageChange={goToPage}
+            maxVisiblePages={5}
+            showEdges={false}
             style={styles.pagination}
           />
         )}

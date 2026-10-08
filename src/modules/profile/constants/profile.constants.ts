@@ -11,11 +11,11 @@ export interface AccountMenuItem {
   label: string;
 }
 
-/** Statistik placeholder sampai endpoint stats bulanan tersedia di backend. */
-export const PLACEHOLDER_STATS: ProfileStats = {
-  diaries: 42,
-  customers: 28,
-  deals: 7,
+/** Nilai awal kartu statistik selagi data bulanan dari backend belum dimuat. */
+export const EMPTY_STATS: ProfileStats = {
+  diaries: 0,
+  customers: 0,
+  deals: 0,
 };
 
 export const SETTING_ITEMS: SettingItem[] = [

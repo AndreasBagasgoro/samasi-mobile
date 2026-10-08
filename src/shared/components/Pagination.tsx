@@ -19,6 +19,8 @@ export interface PaginationProps {
   onPageChange: (page: number) => void;
   style?: ViewStyle;
   maxVisiblePages?: number;
+  /** Tampilkan tombol halaman pertama/terakhir + ellipsis di luar jendela halaman. */
+  showEdges?: boolean;
 }
 
 export const Pagination: React.FC<PaginationProps> = ({
@@ -30,6 +32,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   style,
   maxVisiblePages = 10,
+  showEdges = true,
 }) => {
   const isFirstPage = currentPage <= 1;
   const isLastPage = currentPage >= totalPages;
@@ -53,8 +56,8 @@ export const Pagination: React.FC<PaginationProps> = ({
   if (totalPages <= 1 && !isLoading) return null;
 
   const pageNumbers = getPageNumbers();
-  const showStartEllipsis = pageNumbers[0] > 1;
-  const showEndEllipsis = pageNumbers[pageNumbers.length - 1] < totalPages;
+  const showStartEllipsis = showEdges && pageNumbers[0] > 1;
+  const showEndEllipsis = showEdges && pageNumbers[pageNumbers.length - 1] < totalPages;
 
   // Info teks: "Showing 1-10 of 11"
   const startItem = totalItems && itemsPerPage ? (currentPage - 1) * itemsPerPage + 1 : null;
