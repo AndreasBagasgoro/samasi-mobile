@@ -16,7 +16,7 @@ import { Colors, Layout } from '@shared/constants';
 import { useAuthStore } from '@modules/auth';
 import { clearHomeCache } from '@modules/home/hooks';
 import { clearDealsCache } from '@modules/deals/hooks';
-import { useProfile, clearProfileCache } from '../hooks';
+import { useProfile, clearProfileCache, useProfileStats, clearProfileStatsCache } from '../hooks';
 import {
   ProfileHeader,
   ProfileStatsCard,
@@ -25,13 +25,14 @@ import {
   ProfileMenuRow,
   SignOutButton,
 } from '../components';
-import { SETTING_ITEMS, ACCOUNT_MENU_ITEMS, PLACEHOLDER_STATS } from '../constants';
+import { SETTING_ITEMS, ACCOUNT_MENU_ITEMS, EMPTY_STATS } from '../constants';
 
 export const ProfileScreen: React.FC = () => {
   const router = useRouter();
   const authUser = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const { profile, isLoading, isRefreshing, error, refreshProfile } = useProfile();
+  const { stats, isLoading: isStatsLoading, refreshStats } = useProfileStats();
   const [isSignOutVisible, setIsSignOutVisible] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -45,6 +46,7 @@ export const ProfileScreen: React.FC = () => {
     try {
       await logout();
       clearProfileCache();
+      clearProfileStatsCache();
       clearHomeCache();
       clearDealsCache();
     } finally {
@@ -52,6 +54,10 @@ export const ProfileScreen: React.FC = () => {
       setIsSignOutVisible(false);
     }
   }, [logout]);
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refreshProfile(), refreshStats()]);
+  }, [refreshProfile, refreshStats]);
 
   const handleBack = useCallback(() => {
     if (router.canGoBack()) {
@@ -71,7 +77,7 @@ export const ProfileScreen: React.FC = () => {
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
-            onRefresh={refreshProfile}
+            onRefresh={handleRefresh}
             colors={[Colors.primary]}
             tintColor={Colors.primary}
           />
@@ -98,7 +104,7 @@ export const ProfileScreen: React.FC = () => {
           </View>
         )}
 
-        <ProfileStatsCard stats={PLACEHOLDER_STATS} />
+        <ProfileStatsCard stats={stats ?? EMPTY_STATS} isLoading={isStatsLoading && !stats} />
 
         <ProfileSection title="Settings">
           {SETTING_ITEMS.map((item, index) => (
