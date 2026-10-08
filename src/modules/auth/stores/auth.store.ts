@@ -112,18 +112,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         try {
           parsedUser = JSON.parse(userStr);
         } catch (e) { }
-
-        set({ token, user: parsedUser });
-
+        set({ token, user: parsedUser, isAuthenticated: true });
         try {
           const freshUser = await authService.getProfile();
-          set({
-            user: freshUser || parsedUser,
-            isAuthenticated: true,
-          });
+          const mergedUser = { ...parsedUser, ...freshUser };
+          set({ user: mergedUser });
+          await storageService.setItem(AUTH_STORAGE_KEY, JSON.stringify(mergedUser));
         } catch (error: any) {
-          console.warn('[AuthStore] Session validation on hydrate failed:', error);
-          await get().logout();
+          console.warn('[AuthStore] Session refresh on hydrate failed:', error);
         }
       } else {
         set({ isAuthenticated: false });
@@ -139,7 +135,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   clearError: () => set({ error: null }),
 }));
 
-// Register handler untuk HTTP 401 Unauthorized dari ApiService
 setOnUnauthorizedHandler(() => {
   const state = useAuthStore.getState();
   if (state.isAuthenticated) {
